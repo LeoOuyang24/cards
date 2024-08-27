@@ -13,6 +13,17 @@ glm::vec4 GameUI::getHandRect()
     return glm::vec4(0.5*(screenDimen.x - width),0.65*screenDimen.y,width,height);
 }
 
+glm::vec4 GameUI::getPlayRect()
+{
+    glm::vec2 screenDimen = ViewPort::getScreenDimen();
+    float width = screenDimen.x*0.7;
+    float height = screenDimen.y*0.5;
+
+    glm::vec4 handRect = getHandRect();
+
+    return glm::vec4(handRect.x,handRect.y - height,width,height);
+}
+
 CardUIOrient CardUIOrient::operator+(const CardUIOrient& b) const
 {
     return {this->rect + b.rect, this->angle + b.angle};
@@ -25,6 +36,11 @@ CardUIOrient CardUIOrient::operator*(float val) const
 CardUIOrient CardUIOrient::operator-(const CardUIOrient& b) const
 {
     return *this + b*-1.0f;
+}
+
+void CardUI::onHover()
+{
+    render(glm::vec4(getRect().x,getRect().y - .75f*CardUI::CARD_DIMENS.y,1.5f*CardUI::CARD_DIMENS),0,1);
 }
 
 CardUI::CardUI(CardPtr& card_,const glm::vec4& pos_, float radians_) : card(card_), rect(pos_), radians(radians_)
@@ -45,6 +61,16 @@ glm::vec4 CardUI::getRect()
 float CardUI::getAngle()
 {
     return radians;
+}
+
+bool CardUI::getInHand()
+{
+    return inHand;
+}
+
+void CardUI::setInHand(bool val)
+{
+    inHand = val;
 }
 
 void CardUI::setRect(const glm::vec4& rect)
@@ -78,6 +104,24 @@ void CardUI::render(const glm::vec4& pos, float angle, int z)
     }
 }
 
+bool CardUI::handleInput()
+{
+    glm::vec2 mousePos = pairtoVec(MouseManager::getMousePos());
+    if (pointInVec(getRect(),mousePos,getAngle()))
+    {
+        if (MouseManager::isPressed(SDL_BUTTON_LEFT))
+        {
+            glm::vec2 dimen = {getRect().z,getRect().a};
+            setRect(glm::vec4(mousePos - 0.5f*dimen,dimen));
+        }
+        else
+        {
+            onHover();
+        }
+        return true;
+    }
+    return false;
+}
 
 CardUIOrient HandUI::getCardUIRect(int index, int handSize)
 {
@@ -95,36 +139,54 @@ CardUIOrient HandUI::getCardUIRect(int index, int handSize)
 
 }
 
-void HandUI::render(CardUIPtr& ptr)
-{
-    ptr->render();
-}
 
-void HandUI::onHover(CardUIPtr& ptr)
+void HandUI::addCard(CardUIPtr& card,bool orient)
 {
-    ptr->render(glm::vec4(ptr->getRect().x,GameUI::getHandRect().y - CardUI::CARD_DIMENS.y,2.0f*CardUI::CARD_DIMENS),0,1);
-}
-
-HandUI::CardUIPtr HandUI::addCard(CardPtr& card, const CardUIOrient& orient)
-{
-
-    CardUIPtr ptr(new CardUI(card,orient.rect,orient.angle));
-    cardUIs.push_back(ptr);
-    return ptr;
-}
-
-void HandUI::resetHand(HandType& hand)
-{
-    cardUIs.clear();
-    int size = hand.size();
-    int i = 0;
-    for (auto it = hand.begin(); it != hand.end(); ++it)
+    card->setInHand(true);
+    if (orient)
     {
-        addCard(*it,getCardUIRect(i,size));
-        i ++;
+        auto it = cardUIs.begin();
+        for (; it != cardUIs.end(); ++it)
+        {
+            if ((*it)->getRect().x > card->getRect().x)
+            {
+                break;
+            }
+        }
+        cardUIs.insert(it,card);
+        reorient();
     }
-    //SpriteManager::render();
-    inputHandled = false;
+    else
+    {
+        cardUIs.push_back(card);
+    }
+}
+
+void HandUI::reorient()
+{
+    int i = 0;
+    for (auto it = cardUIs.begin(); it != cardUIs.end(); ++it,i++)
+    {
+        (*it)->orient(getCardUIRect(i,cardUIs.size()));
+    }
+}
+
+void HandUI::removeCard(CardUIPtr& card)
+{
+    auto found = std::find(cardUIs.begin(),cardUIs.end(),card);
+    if (found != cardUIs.end())
+    {
+        cardUIs.erase(found);
+    }
+    reorient();
+}
+
+void HandUI::render()
+{
+    for (auto it = cardUIs.begin(); it != cardUIs.end(); ++it)
+    {
+        (*it)->render();
+    }
 }
 
 template<typename T>
@@ -135,7 +197,7 @@ T lerp(T a1, T a2, float t)
 
 
 
-void HandUI::drawCards(std::vector<CardPtr>& cards)
+void HandUI::drawCards(std::vector<CardUIPtr>& cards)
 {
     glm::vec2 screenDimen = ViewPort::getScreenDimen();
 
@@ -160,10 +222,8 @@ void HandUI::drawCards(std::vector<CardPtr>& cards)
     for (int i = 0; i < cards.size(); i++)
     {
         //add the card to our ui
-        //the orientation here doesn't matter, we're just gonna replace it anyway
-        CardUIPtr ptr = addCard(cards[i],{});
-
-
+        auto ptr = cards[i];
+        addCard(ptr);
 
         auto result = getCardUIRect(size + i,size + cards.size());
         sequencer->addUnits(([ptr,start,end,time](int runtime){
@@ -180,20 +240,105 @@ void HandUI::drawCards(std::vector<CardPtr>& cards)
 
 }
 
-
-void HandUI::update()
+void BoardUI::addCard(CardUIPtr& ptr)
 {
-    bool hovered = false;
-    glm::vec2 mousepos = pairtoVec(MouseManager::getMousePos());
-    for (auto it = cardUIs.begin(); it != cardUIs.end(); ++it)
+    ptr->setInHand(false);
+    cardUIs.push_back(ptr);
+    if (ptr.get())
     {
-        CardUIPtr ptr = (*it);
-        if (!hovered && pointInVec(ptr->getRect(),mousepos,ptr->getAngle()))
-        {
-            onHover(ptr);
-            hovered = true;
-        }
-        render(ptr);
+        ptr->setAngle(0);
     }
 }
 
+void BoardUI::removeCard(CardUIPtr& card)
+{
+    //you may notice that this is literally the same as HandUI
+    //the reason that I haven't made both boardui and handui descendants of a parent class yet is
+    //1) there's not really any reason for polymorphism yet
+    //2) boardUI::removeCard may change in the future. Especially with how BoardUI will be responsible for playing cards, the two may need to be separated
+    //for now though, they are literally identical
+    auto found = std::find(cardUIs.begin(),cardUIs.end(),card);
+    if (found != cardUIs.end())
+    {
+        cardUIs.erase(found);
+    }
+}
+
+void BoardUI::render()
+{
+    for (auto it = cardUIs.begin(); it != cardUIs.end(); ++it)
+    {
+        (*it)->render();
+    }
+}
+
+CardUIPtr MasterCardsUI::addCard(CardPtr& card)
+{
+    CardUIPtr ptr(new CardUI(card));
+    playerCards.push_back(ptr);
+    return ptr;
+}
+
+void MasterCardsUI::drawCards(std::vector<CardPtr>& drawn)
+{
+    std::vector<CardUIPtr> drawnUIs;
+    for (int i = 0; i < drawn.size(); i++)
+    {
+        drawnUIs.push_back(addCard(drawn[i])); //add card to both masterui and handui
+    }
+    handUI.drawCards(drawnUIs);
+}
+
+void MasterCardsUI::update()
+{
+    if (MouseManager::getJustReleased() == SDL_BUTTON_LEFT)
+    {
+        if (heldCard.get())
+        {
+            if (!heldCard->getInHand() && heldCard->getRect().y >= GameUI::getHandRect().y)
+            {
+                handUI.addCard(heldCard,true);
+                boardUI.removeCard(heldCard);
+            }
+            else if (heldCard->getInHand() && heldCard->getRect().y < GameUI::getHandRect().y)
+            {
+                handUI.removeCard(heldCard);
+                boardUI.addCard(heldCard);
+            }
+            heldCard.reset();
+        }
+    }
+    //check for input for all cards. Only do this if we are not dragging a card
+    if (!heldCard.get())
+    {
+        for (auto it = playerCards.begin(); it != playerCards.end(); ++it)
+        {
+            //if no cardui has handled input
+            if (!inputHandled)
+            {
+                //check if this card can handle input
+                inputHandled = (*it)->handleInput();
+
+                //check if the mouse clicked, and thus is dragging a card
+                //honestly not a huge fan of how this is handled rn
+                //may want to consider adding the dragging logic to MasterCardsUI away from CardUI::handleInput()
+                if (inputHandled && MouseManager::getJustClicked() == SDL_BUTTON_LEFT)
+                {
+                    heldCard = *it;
+                }
+
+            }
+        }
+    }
+    else
+    {
+        heldCard->handleInput();
+    }
+
+
+    handUI.render();
+    boardUI.render();
+
+    //reset "inputHandled"
+    inputHandled = false;
+}

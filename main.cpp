@@ -52,11 +52,12 @@ int main(int args, char* argsc[])
     ViewPort::currentCamera = &camera;*/
     Deck deck;
     Hand hand;
-    hand.draw(deck,5);
-    HandUI handUI;
-    handUI.resetHand(hand.getHand());
-    auto asdf = hand.draw(deck,5);
-    handUI.drawCards(asdf);
+
+    MasterCardsUI masterUI;
+
+
+    auto asdf = hand.draw(deck,10);
+    masterUI.drawCards(asdf);
     glm::vec4 handRect = GameUI::getHandRect();
     while (!quit)
     {
@@ -77,8 +78,9 @@ int main(int args, char* argsc[])
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handUI.update();
+        masterUI.update();
         PolyRender::requestRect(handRect,glm::vec4(0,0.7,0,1),false,0,0);
+        PolyRender::requestRect(GameUI::getPlayRect(),glm::vec4(1,0,0,1),false,0,0);
 
         SequenceManager::run();
 
