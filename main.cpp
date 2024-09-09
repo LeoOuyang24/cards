@@ -14,8 +14,8 @@
 int main(int args, char* argsc[])
 {
     //delete ptr;
-    const int screenWidth = 640;
-    const int screenHeight = 640;
+    const int screenWidth = 900;
+    const int screenHeight = 900;
 
     srand(time(NULL));
 
@@ -37,12 +37,14 @@ int main(int args, char* argsc[])
     SDL_StopTextInput();
     ViewPort::init(screenWidth,screenHeight);
 
-    Font::init(screenWidth, screenHeight);
+    FontGlobals::init(screenWidth, screenHeight);
     PolyRender::init(screenWidth,screenHeight);
     SDL_Event e;
     bool quit = false;
     glClearColor(0,0,0,1);
     bool eventsEmpty = true;
+
+    CardUI::cardTextFont.reset((new CardTextFont()));
 
     //Callable* ptr = (new SequenceUnit([](int runtime,Callable&){}));
 
@@ -79,13 +81,21 @@ int main(int args, char* argsc[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         masterUI.update();
+        //PolyRender::requestRect(glm::vec4(0,0,screenWidth,screenHeight),glm::vec4(1,0,0,1),true,0,0);
         PolyRender::requestRect(handRect,glm::vec4(0,0.7,0,1),false,0,0);
         PolyRender::requestRect(GameUI::getPlayRect(),glm::vec4(1,0,0,1),false,0,0);
+        PolyRender::requestRect(GameUI::getEnemyRect(),glm::vec4(1,1,0,1),false,0,0);
+        PolyRender::requestRect(GameUI::getDeckRect(),glm::vec4(1,0,1,1),false,0,0);
+
+        //Font::tnr.requestWrite({"HELLO!!!!",{320,320,100,100},{1,0,0,1},0,1});
+
 
         SequenceManager::run();
 
         ViewPort::update();
         PolyRender::render();
+
+
 
         SpriteManager::render();
         GLContext::update();

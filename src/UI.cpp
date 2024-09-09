@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "sequencer.h"
+#include "FreeTypeHelper.h"
 
 #include "../headers/UI.h"
 
@@ -24,6 +25,20 @@ glm::vec4 GameUI::getPlayRect()
     return glm::vec4(handRect.x,handRect.y - height,width,height);
 }
 
+glm::vec4 GameUI::getEnemyRect()
+{
+    glm::vec2 screenDimen = ViewPort::getScreenDimen();
+    glm::vec2 dimen = 2.0f*CardUI::CARD_DIMENS;
+    return glm::vec4(screenDimen.x/2 - dimen.x/2,0.1*screenDimen.y,dimen);
+}
+
+glm::vec4 GameUI::getDeckRect()
+{
+    glm::vec4 playRect = getPlayRect();
+    glm::vec2 dimens = 1.2f*CardUI::CARD_DIMENS;
+    return glm::vec4(playRect.x + playRect.z - dimens.x/2,playRect.y - dimens.y/2,dimens);
+}
+
 CardUIOrient CardUIOrient::operator+(const CardUIOrient& b) const
 {
     return {this->rect + b.rect, this->angle + b.angle};
@@ -37,6 +52,8 @@ CardUIOrient CardUIOrient::operator-(const CardUIOrient& b) const
 {
     return *this + b*-1.0f;
 }
+
+ std::unique_ptr<CardTextFont> CardUI::cardTextFont;
 
 void CardUI::onHover()
 {
@@ -100,6 +117,11 @@ void CardUI::render(const glm::vec4& pos, float angle, int z)
     {
         SpriteManager::requestSprite({*ViewPort::basicProgram,ptr->getSprite()},
                              pos,z,angle);
+        //if (angle == 0)
+        {
+            //SpriteManager::requestSprite({*ViewPort::basicProgram,&Font::tnr.getChar('F')},glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),z+1,0);
+            cardTextFont->requestWrite({ptr->getText(),glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),{0,0,0,1},angle,z,CENTER,VERTCENTER},*ViewPort::basicProgram);
+        }
 
     }
 }

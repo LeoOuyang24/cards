@@ -3,7 +3,7 @@
 #include "../headers/deck.h"
 #include "../headers/UI.h"
 
-Card::Card(std::string spritePath)
+Card::Card(std::string spritePath, std::string text_) : text(text_)
 {
     if (spritePath.size() == 0)
     {
@@ -19,12 +19,18 @@ Card::Card(std::string spritePath)
                 n++;
             }
     }
+
     sprite.reset(new Sprite(spritePath));
 }
 
 Sprite* Card::getSprite()
 {
     return sprite.get();
+}
+
+std::string Card::getText()
+{
+    return text;
 }
 
 Deck::Deck()

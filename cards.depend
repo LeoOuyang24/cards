@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1724729984 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
+1725781258 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
 	<iostream>
 	<time.h>
 	<SDL.h>
@@ -345,7 +345,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1723347071 c:\users\leoou\onedrive\desktop\resources\render.h
+1725679387 c:\users\leoou\onedrive\desktop\resources\render.h
 	<iostream>
 	<vector>
 	<map>
@@ -908,7 +908,7 @@
 	<unordered_map>
 	<regex>
 
-1706501613 c:\users\leoou\onedrive\desktop\resources\freetypehelper.h
+1725855615 c:\users\leoou\onedrive\desktop\resources\freetypehelper.h
 	<ft2build.h>
 	<unordered_map>
 	<memory>
@@ -933,22 +933,24 @@
 	<iostream>
 	<unordered_map>
 
-1723440489 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
+1725781258 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
 	<list>
 	"render.h"
 
-1723440489 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
+1725085142 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
 	<filesystem>
 	"../headers/deck.h"
 	"../headers/UI.h"
 
-1724731050 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
+1725779405 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
 	"geometry.h"
 	"deck.h"
+	"card_text.h"
 
-1724731366 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
+1725853233 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
 	<cmath>
 	"sequencer.h"
+	"FreeTypeHelper.h"
 	"../headers/UI.h"
 
 1724611592 c:\users\leoou\onedrive\desktop\resources\sequencer.h
@@ -958,4 +960,11 @@
 	"vanilla.h"
 	"SDLhelper.h"
 	"render.h"
+
+1725855124 source:c:\users\leoou\onedrive\desktop\projects\cards\src\card_text.cpp
+	"resourcesMaster.h"
+	"../headers/card_text.h"
+
+1725779990 c:\users\leoou\onedrive\desktop\projects\cards\headers\card_text.h
+	"FreeTypeHelper.h"
 

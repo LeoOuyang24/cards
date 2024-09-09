@@ -8,11 +8,13 @@
 class Card
 {
     std::shared_ptr<Sprite> sprite;
+    std::string text = "";
 public:
     //create the card
     //if no sprite is given, get a random one
-    Card(std::string spritePath = "");
+    Card(std::string spritePath = "", std::string text_ = "Deal \x80 Damage");
     Sprite* getSprite();
+    std::string getText();
 };
 
 //data structure that represents a deck

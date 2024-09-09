@@ -4,11 +4,14 @@
 #include "geometry.h"
 
 #include "deck.h"
+#include "card_text.h"
 
 struct GameUI
 {
     static glm::vec4 getHandRect();
-    static glm::vec4 getPlayRect(); //
+    static glm::vec4 getPlayRect();
+    static glm::vec4 getEnemyRect();
+    static glm::vec4 getDeckRect();
 };
 
 //orientation of a cardui
@@ -30,6 +33,7 @@ class CardUI
     void onHover();
 public:
     static constexpr glm::vec2 CARD_DIMENS = {100,140};
+    static std::unique_ptr<CardTextFont> cardTextFont;
     CardUI(CardPtr& card_,const glm::vec4& pos_ = glm::vec4(0,0,CARD_DIMENS), float radians_ = 0);
 
     Card* getCard();
