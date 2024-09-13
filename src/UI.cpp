@@ -117,12 +117,11 @@ void CardUI::render(const glm::vec4& pos, float angle, int z)
     {
         SpriteManager::requestSprite({*ViewPort::basicProgram,ptr->getSprite()},
                              pos,z,angle);
-        //if (angle == 0)
-        {
-            //SpriteManager::requestSprite({*ViewPort::basicProgram,&Font::tnr.getChar('F')},glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),z+1,0);
-            cardTextFont->requestWrite({ptr->getText(),glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),{0,0,0,1},angle,z,CENTER,VERTCENTER},*ViewPort::basicProgram);
-        }
 
+        cardTextFont->requestWrite({ptr->getText(),
+                                   rotateRect(glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),{pos.x + pos.z/2,pos.y + pos.a/2},angle),
+                                   {0,0,0,1},angle,z,CENTER,VERTCENTER},*ViewPort::basicProgram);
+       // PolyRender::requestRect(cardTextRect,glm::vec4(1,0,1,1),false,angle,1);
     }
 }
 
