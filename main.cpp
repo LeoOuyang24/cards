@@ -45,7 +45,7 @@ int main(int args, char* argsc[])
     bool eventsEmpty = true;
 
     CardUI::cardTextFont.reset((new CardTextFont()));
-
+    CardUI::blankCard.init("sprites/cards/card_template.png");
     //Callable* ptr = (new SequenceUnit([](int runtime,Callable&){}));
 
     /*RenderCamera camera;

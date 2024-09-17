@@ -2,12 +2,13 @@
 
 #include "../headers/deck.h"
 #include "../headers/UI.h"
+#include "../headers/card_text.h"
 
-Card::Card(std::string spritePath, std::string text_) : text(text_)
+Card::Card(std::string name_,std::string spritePath, std::string text_) : text(text_), name(name_)
 {
     if (spritePath.size() == 0)
     {
-        std::string folderPath = "./sprites/cards";
+        std::string folderPath = "./sprites/cardfaces";
 
         //reservoir sample our files, picking a random sprite
         //https://stackoverflow.com/questions/58400066/how-to-quickly-pick-a-random-file-from-a-folder-tree
@@ -23,9 +24,19 @@ Card::Card(std::string spritePath, std::string text_) : text(text_)
     sprite.reset(new Sprite(spritePath));
 }
 
+Card::Card(std::string name_, std::string spritePath, const ResourceStats& stats_) :  Card(name_,spritePath,CardTextFont::getCardResourceString(stats_))
+{
+    stats = stats_;
+}
+
 Sprite* Card::getSprite()
 {
     return sprite.get();
+}
+
+std::string Card::getName()
+{
+    return name;
 }
 
 std::string Card::getText()
@@ -37,7 +48,7 @@ Deck::Deck()
 {
     for (int i = 0; i < 52; i++)
     {
-        deck.emplace_back(new Card());
+        deck.emplace_back(new Card("Stale Potatoes","",ResourceStats{5,10,15}));
     }
 }
 

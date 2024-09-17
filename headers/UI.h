@@ -32,8 +32,9 @@ class CardUI
     bool inHand = false;
     void onHover();
 public:
-    static constexpr glm::vec2 CARD_DIMENS = {100,140};
+    static constexpr glm::vec2 CARD_DIMENS = {180,252};
     static std::unique_ptr<CardTextFont> cardTextFont;
+    static Sprite blankCard; //sprite for a blank card
     CardUI(CardPtr& card_,const glm::vec4& pos_ = glm::vec4(0,0,CARD_DIMENS), float radians_ = 0);
 
     Card* getCard();

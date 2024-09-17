@@ -5,16 +5,29 @@
 
 #include "render.h"
 
+//represents how much resource each card provides
+struct ResourceStats
+{
+    int coins = 0;
+    int damage = 0;
+    int food = 0;
+};
+
 class Card
 {
     std::shared_ptr<Sprite> sprite;
     std::string text = "";
+    std::string name = "";
+
+    ResourceStats stats;
 public:
     //create the card
     //if no sprite is given, get a random one
-    Card(std::string spritePath = "", std::string text_ = "Deal \x80 Damage");
+    Card(std::string name, std::string spritePath = "", std::string text_ = "Deal \x80 Damage");
+    Card(std::string name, std::string spritePath, const ResourceStats& stats);
     Sprite* getSprite();
     std::string getText();
+    std::string getName();
 };
 
 //data structure that represents a deck

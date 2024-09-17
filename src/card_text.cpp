@@ -16,14 +16,25 @@ CardTextChar::CardTextChar(char c, std::string spritePath) : Character(c)
     Sprite::load(spritePath);
 
      size =     glm::ivec2(width/5, height/5);
-    bearing =  {0,size.y};
+    bearing =  {10,size.y};
     advance =  width*10;
 
 }
 
+
+std::string CardTextFont::getCardResourceString(const ResourceStats& stats)
+{
+    return (stats.coins > 0 ? (std::to_string(stats.coins) + coinChar) : "") +
+            (stats.damage > 0 ? ("\n" + std::to_string(stats.damage) + damageChar) : "") +
+            (stats.food > 0 ? ("\n" + std::to_string(stats.food) + foodChar) : "");
+}
+
 CardTextFont::CardTextFont() : Font()
 {
-    Font::init<CardTextChar>(ResourcesConfig::config[ResourcesConfig::RESOURCES_DIR] + "/tnr.ttf");
+    Font::init<CardTextChar>("fonts/Cryptik.ttf");
     characters[coinChar] = std::unique_ptr<Character>(new CardTextChar(coinChar,"sprites/icons/coin.png"));
+    characters[damageChar] = std::unique_ptr<Character>(new CardTextChar(damageChar,"sprites/icons/damage.png"));
+    characters[foodChar] = std::unique_ptr<Character>(new CardTextChar(damageChar,"sprites/icons/food.png"));
+
 
 }

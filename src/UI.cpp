@@ -54,10 +54,11 @@ CardUIOrient CardUIOrient::operator-(const CardUIOrient& b) const
 }
 
  std::unique_ptr<CardTextFont> CardUI::cardTextFont;
-
+ Sprite CardUI::blankCard;
 void CardUI::onHover()
 {
-    render(glm::vec4(getRect().x,getRect().y - .75f*CardUI::CARD_DIMENS.y,1.5f*CardUI::CARD_DIMENS),0,1);
+    glm::vec2 dimen = 1.75f*CardUI::CARD_DIMENS;
+    render(glm::vec4(getRect().x,getRect().y - .5f*dimen.y,dimen),0,1);
 }
 
 CardUI::CardUI(CardPtr& card_,const glm::vec4& pos_, float radians_) : card(card_), rect(pos_), radians(radians_)
@@ -115,13 +116,26 @@ void CardUI::render(const glm::vec4& pos, float angle, int z)
 {
     if (Card* ptr = getCard())
     {
-        SpriteManager::requestSprite({*ViewPort::basicProgram,ptr->getSprite()},
+        SpriteManager::requestSprite({*ViewPort::basicProgram,&blankCard},
                              pos,z,angle);
 
+        glm::vec2 center = {pos.x + pos.z/2, pos.y + pos.a/2};
+
+        glm::vec4 spriteRect = rotateRect(glm::vec4(pos.x + .1*pos.z,pos.y + .03*pos.a  ,.8*pos.z,pos.a/2),center,angle); //rect where we render the sprite
+        glm::vec4 nameRect = rotateRect(glm::vec4(pos.x + .26*pos.z,pos.y + 153.0/278*pos.a,0.48*pos.z,.06*pos.a),center,angle); //rect where we render the name
+        glm::vec4 textRect = rotateRect(glm::vec4(pos.x + .1*pos.z,pos.y+174.0/278*pos.a,.8*pos.z,pos.a*.3f),center,angle); //rect where we render card text
+
+        SpriteManager::requestSprite({*ViewPort::basicProgram,ptr->getSprite()},
+                                     spriteRect,z,angle);
+
+        cardTextFont->requestWrite({ptr->getName(),
+                                   nameRect,
+                                   -1.f,{1,1,1,1},angle,z,CENTER, VERTCENTER
+                                   },*ViewPort::basicProgram);
+
         cardTextFont->requestWrite({ptr->getText(),
-                                   rotateRect(glm::vec4(pos.x,pos.y+pos.a/2,pos.z,pos.a/2),{pos.x + pos.z/2,pos.y + pos.a/2},angle),
-                                   {0,0,0,1},angle,z,CENTER,VERTCENTER},*ViewPort::basicProgram);
-       // PolyRender::requestRect(cardTextRect,glm::vec4(1,0,1,1),false,angle,1);
+                                   textRect,
+                                   -1.f,{0,0,0,1},angle,z,CENTER,VERTCENTER},*ViewPort::basicProgram);
     }
 }
 
