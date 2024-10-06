@@ -25,8 +25,8 @@ CardTextChar::CardTextChar(char c, std::string spritePath) : Character(c)
 std::string CardTextFont::getCardResourceString(const ResourceStats& stats)
 {
     return (stats.coins > 0 ? (std::to_string(stats.coins) + coinChar) : "") +
-            (stats.damage > 0 ? ("\n" + std::to_string(stats.damage) + damageChar) : "") +
-            (stats.food > 0 ? ("\n" + std::to_string(stats.food) + foodChar) : "");
+            (stats.damage > 0 ? ((stats.coins > 0 ? "\n" : "") + std::to_string(stats.damage) + damageChar) : "") +
+            (stats.food > 0 ? ((stats.coins > 0 || stats.damage > 0 ? "\n" : "") + std::to_string(stats.food) + foodChar) : "");
 }
 
 CardTextFont::CardTextFont() : Font()

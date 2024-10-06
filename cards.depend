@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1726545721 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
+1727846816 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
 	<iostream>
 	<time.h>
 	<SDL.h>
@@ -10,6 +10,8 @@
 	"sequencer.h"
 	"headers/deck.h"
 	"headers/UI.h"
+	"headers/loader.h"
+	"headers/gamestate.h"
 
 1519936706 c:\users\leoou\onedrive\desktop\sdlstuff\sdl2-2.0.8\x86_64-w64-mingw32\include\sdl2\sdl.h
 	"SDL_main.h"
@@ -895,7 +897,7 @@
 	<unordered_set>
 	"SDL.h"
 
-1713992273 c:\users\leoou\onedrive\desktop\resources\vanilla.h
+1727507295 c:\users\leoou\onedrive\desktop\resources\vanilla.h
 	<iostream>
 	<tuple>
 	<math.h>
@@ -933,28 +935,32 @@
 	<iostream>
 	<unordered_map>
 
-1726548617 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
+1727755287 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
 	<list>
 	"render.h"
 
-1726550907 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
+1727828298 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
 	<filesystem>
 	"../headers/deck.h"
 	"../headers/UI.h"
 	"../headers/card_text.h"
 
-1726550986 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
+1727832886 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
+	"sequencer.h"
 	"geometry.h"
 	"deck.h"
 	"card_text.h"
+	"enemyCards.h"
+	"gamestate.h"
 
-1726550851 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
+1727846688 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
 	<cmath>
 	"sequencer.h"
 	"FreeTypeHelper.h"
+	"vanilla.h"
 	"../headers/UI.h"
 
-1724611592 c:\users\leoou\onedrive\desktop\resources\sequencer.h
+1727640838 c:\users\leoou\onedrive\desktop\resources\sequencer.h
 	<memory>
 	<unordered_set>
 	<functional>
@@ -962,11 +968,231 @@
 	"SDLhelper.h"
 	"render.h"
 
-1726534464 source:c:\users\leoou\onedrive\desktop\projects\cards\src\card_text.cpp
+1726944892 source:c:\users\leoou\onedrive\desktop\projects\cards\src\card_text.cpp
 	"resourcesMaster.h"
 	"../headers/card_text.h"
 
 1726372308 c:\users\leoou\onedrive\desktop\projects\cards\headers\card_text.h
 	"FreeTypeHelper.h"
 	"deck.h"
+
+1727313054 c:\users\leoou\onedrive\desktop\projects\cards\headers\loader.h
+	<fstream>
+	"deck.h"
+
+1727313050 source:c:\users\leoou\onedrive\desktop\projects\cards\src\loader.cpp
+	"../headers/loader.h"
+	"../libraries/json.hpp"
+	"../headers/card_text.h"
+
+1726553995 c:\users\leoou\onedrive\desktop\projects\cards\libraries\json.hpp
+	<algorithm>
+	<cstddef>
+	<functional>
+	<initializer_list>
+	<iosfwd>
+	<iterator>
+	<memory>
+	<string>
+	<utility>
+	<vector>
+	<utility>
+	<algorithm>
+	<array>
+	<forward_list>
+	<iterator>
+	<map>
+	<string>
+	<tuple>
+	<type_traits>
+	<unordered_map>
+	<utility>
+	<valarray>
+	<cstddef>
+	<exception>
+	<numeric>
+	<stdexcept>
+	<string>
+	<vector>
+	<array>
+	<cstddef>
+	<cstdint>
+	<string>
+	<utility>
+	<type_traits>
+	<stdint.h>
+	<stdint.h>
+	<version>
+	<cstdlib>
+	<cassert>
+	<compare>
+	<cstddef>
+	<array>
+	<cstddef>
+	<type_traits>
+	<utility>
+	<limits>
+	<type_traits>
+	<utility>
+	<tuple>
+	<string>
+	<iterator>
+	<cstdint>
+	<map>
+	<memory>
+	<string>
+	<vector>
+	<cstring>
+	<string>
+	<utility>
+	<experimental/filesystem>
+	<filesystem>
+	<algorithm>
+	<iterator>
+	<string>
+	<tuple>
+	<type_traits>
+	<utility>
+	<valarray>
+	<vector>
+	<cstddef>
+	<iterator>
+	<string>
+	<tuple>
+	<utility>
+	<ranges>
+	<cstdint>
+	<tuple>
+	<utility>
+	<cstdint>
+	<cstddef>
+	<functional>
+	<algorithm>
+	<array>
+	<cmath>
+	<cstddef>
+	<cstdint>
+	<cstdio>
+	<cstring>
+	<iterator>
+	<limits>
+	<string>
+	<utility>
+	<vector>
+	<array>
+	<cstddef>
+	<cstring>
+	<iterator>
+	<memory>
+	<numeric>
+	<string>
+	<type_traits>
+	<utility>
+	<cstdio>
+	<istream>
+	<cstddef>
+	<string>
+	<utility>
+	<vector>
+	<array>
+	<clocale>
+	<cstddef>
+	<cstdio>
+	<cstdlib>
+	<initializer_list>
+	<string>
+	<utility>
+	<vector>
+	<cstdint>
+	<utility>
+	<string>
+	<cmath>
+	<cstdint>
+	<functional>
+	<string>
+	<utility>
+	<vector>
+	<cstddef>
+	<limits>
+	<iterator>
+	<type_traits>
+	<cstddef>
+	<iterator>
+	<utility>
+	<type_traits>
+	<algorithm>
+	<cctype>
+	<cerrno>
+	<cstdlib>
+	<iosfwd>
+	<limits>
+	<numeric>
+	<string>
+	<utility>
+	<vector>
+	<initializer_list>
+	<utility>
+	<algorithm>
+	<array>
+	<map>
+	<cmath>
+	<cstdint>
+	<cstring>
+	<limits>
+	<string>
+	<utility>
+	<vector>
+	<algorithm>
+	<cstddef>
+	<iterator>
+	<memory>
+	<string>
+	<vector>
+	<ios>
+	<ostream>
+	<algorithm>
+	<array>
+	<clocale>
+	<cmath>
+	<cstddef>
+	<cstdint>
+	<cstdio>
+	<limits>
+	<string>
+	<iomanip>
+	<type_traits>
+	<utility>
+	<array>
+	<cmath>
+	<cstdint>
+	<cstring>
+	<limits>
+	<type_traits>
+	<functional>
+	<initializer_list>
+	<iterator>
+	<memory>
+	<stdexcept>
+	<type_traits>
+	<utility>
+	<vector>
+	<any>
+	<string_view>
+
+1727846718 source:c:\users\leoou\onedrive\desktop\projects\cards\src\enemycards.cpp
+	"vanilla.h"
+	"../headers/enemyCards.h"
+	"../headers/gamestate.h"
+	"../headers/UI.h"
+	"../headers/loader.h"
+
+1727828978 c:\users\leoou\onedrive\desktop\projects\cards\headers\enemycards.h
+	"deck.h"
+
+1727832831 source:c:\users\leoou\onedrive\desktop\projects\cards\src\gamestate.cpp
+	"../headers/gamestate.h"
+
+1727831094 c:\users\leoou\onedrive\desktop\projects\cards\headers\gamestate.h
+	"deck.h"
+	"enemyCards.h"
 

@@ -29,44 +29,32 @@ Card::Card(std::string name_, std::string spritePath, const ResourceStats& stats
     stats = stats_;
 }
 
-Sprite* Card::getSprite()
+Sprite* Card::getSprite() const
 {
     return sprite.get();
 }
 
-std::string Card::getName()
+std::string Card::getName() const
 {
     return name;
 }
 
-std::string Card::getText()
+std::string Card::getText() const
 {
     return text;
 }
 
-Deck::Deck()
+ResourceStats Card::getStats() const
 {
-    for (int i = 0; i < 52; i++)
-    {
-        deck.emplace_back(new Card("Stale Potatoes","",ResourceStats{5,10,15}));
-    }
+    return stats;
 }
 
-CardPtr Deck::getTop()
-{
-    if (deck.size() > 0)
-    {
-        return deck.back();
-    }
-    else
-    {
-        return CardPtr(nullptr);
-    }
-}
 
-void Deck::pop()
+
+
+/*Hand::Hand(const HandType& startingHand) : hand(std::move(startingHand))
 {
-    deck.pop_back();
+
 }
 
 HandType& Hand::getHand()
@@ -86,5 +74,5 @@ std::vector<CardPtr> Hand::draw(Deck& deck, int amount)
     }
     return cards;
 
-}
+}*/
 

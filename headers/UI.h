@@ -1,17 +1,23 @@
 #ifndef UI_H_INCLUDED
 #define UI_H_INCLUDED
 
+#include "sequencer.h"
 #include "geometry.h"
 
 #include "deck.h"
 #include "card_text.h"
+#include "enemyCards.h"
+#include "gamestate.h"
 
 struct GameUI
 {
     static glm::vec4 getHandRect();
     static glm::vec4 getPlayRect();
     static glm::vec4 getEnemyRect();
+    static glm::vec4 getRewardsRect();
     static glm::vec4 getDeckRect();
+
+    static constexpr int backgroundZ = 0;
 };
 
 //orientation of a cardui
@@ -19,6 +25,9 @@ struct CardUIOrient
 {
     glm::vec4 rect = {};
     float angle = 0;
+    int z = 0; //unlike the other two, doesn't really get impacted by mathematical operations. You should set this manually
+
+    //math operators that allow for easy transforms
     CardUIOrient operator+(const CardUIOrient& b) const; //apparently passing left hand value by value helps optimize?
     CardUIOrient operator-(const CardUIOrient& b) const ;
     CardUIOrient operator*(float val) const;
@@ -26,33 +35,42 @@ struct CardUIOrient
 
 class CardUI
 {
-    float radians = 0;
-    glm::vec4 rect = glm::vec4(0);
-    std::weak_ptr<Card> card;
+    CardUIOrient orient;
+    CardWeakPtr card;
     bool inHand = false;
     void onHover();
+protected:
+    glm::vec4 getCardTextRect(const glm::vec4& pos);
+
+    //renders text, may be different from cards in hand vs enemy cards
+    //I should probably make this for each aspect of the card rendering (sprite, name, etc) but I'm gonna do that as time comes
+    //if it's not necessary I'm not gonna bother making more functions
+    virtual void renderCardText(const glm::vec4& pos, float angle, int z);
 public:
-    static constexpr glm::vec2 CARD_DIMENS = {180,252};
+    static constexpr glm::vec2 CARD_DIMENS = {120,168};
     static std::unique_ptr<CardTextFont> cardTextFont;
     static Sprite blankCard; //sprite for a blank card
-    CardUI(CardPtr& card_,const glm::vec4& pos_ = glm::vec4(0,0,CARD_DIMENS), float radians_ = 0);
+
+    CardUI(const CardPtr& card_,const CardUIOrient& orient_);
 
     Card* getCard();
+    CardWeakPtr& getCardPtr();
     glm::vec4 getRect();
     float getAngle();
+    int getZ();
     bool getInHand();
 
     void setInHand(bool val);
     void setRect(const glm::vec4& rect);
     void setAngle(float angle);
-    void orient(const CardUIOrient&);
+    void setOrient(const CardUIOrient&);
 
     void render();
-    void render(const glm::vec4& pos, float angle,int z = 0);
+    void render(const CardUIOrient&);
 
     //handles input
     //return true if input was handled, false if nothing to do
-    bool handleInput();
+    virtual bool handleInput();
 };
 
 typedef std::shared_ptr<CardUI> CardUIPtr;
@@ -66,7 +84,9 @@ class HandUI
 
 public:
     //adds a card and maybe orient it
-    void addCard(CardUIPtr& card, bool orient = false);
+    void addCard(CardUIPtr card, bool orient = false);
+    //add a card and play an animation of it coming from a position
+    void addCard(CardUIPtr card, const CardUIOrient& origin);
     //reorients the whole hand
     void reorient();
     void removeCard(CardUIPtr& card);
@@ -87,6 +107,38 @@ public:
     void render();
 };
 
+//renders an enemy card
+class EnemyCardUI : public CardUI
+{
+protected:
+    glm::vec4 getChoiceRect(const glm::vec4& fullCardRect, int index);
+    virtual void renderCardText(const glm::vec4& pos, float angle, int z);
+public:
+    EnemyCardUI(const std::shared_ptr<EnemyCard>& card_);
+    bool handleInput();
+};
+
+//renders the enemy cards and rewards
+class EnemyUI
+{
+public:
+
+    void setEnemyCard(const std::shared_ptr<EnemyCard>& card);
+    void setRewards(CardRewards&& rewards);
+    void update();
+private:
+    std::shared_ptr<EnemyCardUI> currentEnemy;
+    std::vector<CardUIPtr> rewards;
+};
+
+//renders a card that can be picked as a reward
+class RewardCardUI : public CardUI
+{
+    //void onClick();
+public:
+    virtual bool handleInput();
+};
+
 class MasterCardsUI
 {
     //handles UI elements regarding cards in the hand, cards in play, enemy cards
@@ -98,15 +150,45 @@ class MasterCardsUI
 
     //all player cards, whether they are in hand or board
     std::list<CardUIPtr> playerCards;
+    MasterCardsUI() //singleton constructor. it is assumed gamestate has been initialized by this point
+    {
+        loadHand(GameState::getGameState()->getTracker<HandState>()->getHand());
+
+        enemyUI.setEnemyCard(GameState::getGameState()->getEnemyState().getEnemy());
+    }
+    static std::unique_ptr<MasterCardsUI> CardsUI;
+
+public:
     HandUI handUI;
     BoardUI boardUI;
-public:
+    EnemyUI enemyUI;
+
+    static void init();
+    static MasterCardsUI* getUI();
+
+    void newTurn();
+
+
     //add a card. Literally as raw as possible; doesn't add to hand or anything
-    CardUIPtr addCard(CardPtr& card);
+    CardUIPtr addCard(const CardPtr& card);
+
 
     //add some drawn cards. also adds them to handui, which plays a little drawing animation
     //handui also handles orienting the cards
     void drawCards(std::vector<CardPtr>& cards);
+
+
+    void moveCard(CardUIPtr& card, bool toHand); //move a card to the hand or board
+
+    //REFACTOR: I'm not sure if functions that involve the UIs should be in MasterCardsUI or their respective UIs (HandUI for addCardToHand, for example).
+    //For now I'm doing it here because it allows me to add/remove the card to/from MasterCardsUI as well as the respective UI
+    CardUIPtr addCardToHand(Card* card,const CardUIOrient& rect); //create a card and add it to hand. Origin rect is an animation
+    void clearBoard(); //clear all cards from teh board, removing them completely from teh game.
+
+    void removeCard(CardUIPtr& card);
+
+    //load a hand into ui
+    void loadHand(const HandType& hand);
     void update();
 };
 #endif // UI_H_INCLUDED

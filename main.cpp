@@ -10,6 +10,9 @@
 
 #include "headers/deck.h"
 #include "headers/UI.h"
+#include "headers/loader.h"
+#include "headers/gamestate.h"
+
 
 int main(int args, char* argsc[])
 {
@@ -44,6 +47,8 @@ int main(int args, char* argsc[])
     glClearColor(0,0,0,1);
     bool eventsEmpty = true;
 
+    GameState::init();
+
     CardUI::cardTextFont.reset((new CardTextFont()));
     CardUI::blankCard.init("sprites/cards/card_template.png");
     //Callable* ptr = (new SequenceUnit([](int runtime,Callable&){}));
@@ -53,13 +58,19 @@ int main(int args, char* argsc[])
     camera.init({0,0,CAMERA_Z});
     ViewPort::currentCamera = &camera;*/
     Deck deck;
-    Hand hand;
+    auto start = loadHand();
+    for (auto card : start)
+    {
+        GameState::getGameState()->addCard(card,HAND);
+    }
+    //Hand hand(start);
 
-    MasterCardsUI masterUI;
+    GameState::getGameState()->newTurn();
 
+    MasterCardsUI::init();
 
-    auto asdf = hand.draw(deck,10);
-    masterUI.drawCards(asdf);
+   // auto asdf = hand.draw(deck,10);
+    //masterUI.drawCards(asdf);
     glm::vec4 handRect = GameUI::getHandRect();
     while (!quit)
     {
@@ -78,9 +89,17 @@ int main(int args, char* argsc[])
             KeyManager::update(e);
             MouseManager::update(e);
         }
+
+        if (KeyManager::getJustPressed() == SDLK_BACKQUOTE)
+        {
+            std::cout << GameState::getGameState()->getTracker<BoardState>()->getResources().toString() << "\n";
+        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        masterUI.update();
+        //enemyUI.update();
+        MasterCardsUI::getUI()->update();
+
         //PolyRender::requestRect(glm::vec4(0,0,screenWidth,screenHeight),glm::vec4(1,0,0,1),true,0,0);
         PolyRender::requestRect(handRect,glm::vec4(0,0.7,0,1),false,0,0);
         PolyRender::requestRect(GameUI::getPlayRect(),glm::vec4(1,0,0,1),false,0,0);
