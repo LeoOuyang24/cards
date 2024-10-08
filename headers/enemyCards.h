@@ -87,12 +87,14 @@ typedef std::list<EnemyPtr> DeckType;
 class Deck
 {
     DeckType deck;
+    std::unique_ptr<Sprite> cardBack;
 public:
-    Deck();
+    Deck(Sprite* cardBack);
     //return top most card, null if empty
     EnemyPtr getTop();
+    Sprite const* getCardBack() const;
     void pop();
-    size_t size();
+    size_t size() const;
 };
 
 #endif // ENEMYCARDS_H_INCLUDED

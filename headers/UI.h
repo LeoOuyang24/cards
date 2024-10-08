@@ -26,11 +26,15 @@ struct CardUIOrient
     glm::vec4 rect = {};
     float angle = 0;
     int z = 0; //unlike the other two, doesn't really get impacted by mathematical operations. You should set this manually
+    float flip = 0; //angle along the y axis
 
     //math operators that allow for easy transforms
     CardUIOrient operator+(const CardUIOrient& b) const; //apparently passing left hand value by value helps optimize?
     CardUIOrient operator-(const CardUIOrient& b) const ;
     CardUIOrient operator*(float val) const;
+
+    bool isFacedown() const; //true if card is face down
+
 };
 
 class CardUI
@@ -66,7 +70,7 @@ public:
     void setOrient(const CardUIOrient&);
 
     void render();
-    void render(const CardUIOrient&);
+    virtual void render(const CardUIOrient&);
 
     //handles input
     //return true if input was handled, false if nothing to do
@@ -116,19 +120,18 @@ protected:
 public:
     EnemyCardUI(const std::shared_ptr<EnemyCard>& card_);
     bool handleInput();
+    void render(const CardUIOrient& o);
 };
 
 //renders the enemy cards and rewards
 class EnemyUI
 {
 public:
-
     void setEnemyCard(const std::shared_ptr<EnemyCard>& card);
-    void setRewards(CardRewards&& rewards);
+    void draw(const std::shared_ptr<EnemyCard>& card); //set enemy card and play a drawing animation
     void update();
 private:
     std::shared_ptr<EnemyCardUI> currentEnemy;
-    std::vector<CardUIPtr> rewards;
 };
 
 //renders a card that can be picked as a reward
@@ -165,7 +168,7 @@ public:
 
     static void init();
     static MasterCardsUI* getUI();
-
+    static std::unique_ptr<BasicRenderPipeline> CardShader;//standard card shader
     void newTurn();
 
 

@@ -35,16 +35,7 @@ void Trade::choose()
     float totalTime = 250;
     for (auto card : get)
     {
-       // auto cardPtr = GameState::curState.addCard(card.get(),HAND);
-        //CardUIPtr ptr = MasterCardsUI::CardsUI.addCardToHand(card.get());
         MasterCardsUI::getUI()->addCardToHand(card.get(),{enemyRect});
-       // MasterCardsUI::CardsUI.handUI.addCard(CardUIPtr(new CardUI(cardPtr,{})),enemyRect);
-        /*sequence->addUnit([enemyRect,cardRect,ptr,totalTime](int time)
-                          {
-                            ptr->setRect(lerp(enemyRect,cardRect,time/totalTime));
-                            return (time >= totalTime);
-                          });*/
-        //MasterCardsUI::CardsUI.handUI.addCard(MasterCardsUI::CardsUI.addCard(card),true);
     }
     SequenceManager::request(*sequence);
 }
@@ -85,7 +76,7 @@ const Choices& EnemyCard::getChoices() const
     return choices;
 }
 
-Deck::Deck()
+Deck::Deck(Sprite* cardBack_) : cardBack(cardBack_)
 {
     for (int i = 0; i < 52; i++)
     {
@@ -107,13 +98,18 @@ EnemyPtr Deck::getTop()
     }
 }
 
+Sprite const* Deck::getCardBack() const
+{
+    return cardBack.get();
+}
+
 void Deck::pop()
 {
     if (deck.size() > 0)
         deck.pop_front();
 }
 
-size_t Deck::size()
+size_t Deck::size() const
 {
     return deck.size();
 }

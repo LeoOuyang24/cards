@@ -76,15 +76,14 @@ public:
 class EnemyState
 {
     EnemyPtr enemy;
-    //deck type here
     Deck deck;
 public:
+    EnemyState(std::string cardBackSpritePath);
     //set enemy, taking ownership of it. Usually used for enemies that are not in the deck
     void setEnemy(EnemyCard* card);
     void setNextEnemy(); //replace the current enemy with the next card on the deck. Slightly more efficient than using setEnemy() by using moves
-
     const EnemyPtr& getEnemy() const;
-
+    const Deck& getDeck() const;
 
 };
 
@@ -97,7 +96,7 @@ enum CardSpots //places a card can be
 
 class GameState
 {
-    GameState()//private for that singleton structure
+    GameState() : enemy("sprites/card_back.png")//private for that singleton structure
     {
         states[HAND] = GlobalMount<HandState>::getSharedPtr();
         states[BOARD] = GlobalMount<BoardState>::getSharedPtr();

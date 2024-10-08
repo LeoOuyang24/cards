@@ -62,6 +62,11 @@ const HandType& HandState::getHand() const
     return hand;
 }
 
+EnemyState::EnemyState(std::string cardBack) : deck(new Sprite(cardBack))
+{
+
+}
+
 void EnemyState::setEnemy(EnemyCard* card)
 {
     enemy.reset(card);
@@ -81,6 +86,10 @@ const EnemyPtr& EnemyState::getEnemy() const
     return enemy;
 }
 
+const Deck& EnemyState::getDeck() const
+{
+    return deck;
+}
 
 std::unique_ptr<GameState> GameState::curState;
 

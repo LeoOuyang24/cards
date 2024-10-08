@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1727846816 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
+1728191060 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
 	<iostream>
 	<time.h>
 	<SDL.h>
@@ -347,7 +347,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1725679387 c:\users\leoou\onedrive\desktop\resources\render.h
+1728188651 c:\users\leoou\onedrive\desktop\resources\render.h
 	<iostream>
 	<vector>
 	<map>
@@ -945,7 +945,7 @@
 	"../headers/UI.h"
 	"../headers/card_text.h"
 
-1727832886 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
+1728349601 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
 	"sequencer.h"
 	"geometry.h"
 	"deck.h"
@@ -953,14 +953,15 @@
 	"enemyCards.h"
 	"gamestate.h"
 
-1727846688 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
+1728352912 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
 	<cmath>
 	"sequencer.h"
 	"FreeTypeHelper.h"
 	"vanilla.h"
+	"resourcesMaster.h"
 	"../headers/UI.h"
 
-1727640838 c:\users\leoou\onedrive\desktop\resources\sequencer.h
+1728261760 c:\users\leoou\onedrive\desktop\resources\sequencer.h
 	<memory>
 	<unordered_set>
 	<functional>
@@ -980,7 +981,7 @@
 	<fstream>
 	"deck.h"
 
-1727313050 source:c:\users\leoou\onedrive\desktop\projects\cards\src\loader.cpp
+1728189136 source:c:\users\leoou\onedrive\desktop\projects\cards\src\loader.cpp
 	"../headers/loader.h"
 	"../libraries/json.hpp"
 	"../headers/card_text.h"
@@ -1179,20 +1180,20 @@
 	<any>
 	<string_view>
 
-1727846718 source:c:\users\leoou\onedrive\desktop\projects\cards\src\enemycards.cpp
+1728261852 source:c:\users\leoou\onedrive\desktop\projects\cards\src\enemycards.cpp
 	"vanilla.h"
 	"../headers/enemyCards.h"
 	"../headers/gamestate.h"
 	"../headers/UI.h"
 	"../headers/loader.h"
 
-1727828978 c:\users\leoou\onedrive\desktop\projects\cards\headers\enemycards.h
+1728189960 c:\users\leoou\onedrive\desktop\projects\cards\headers\enemycards.h
 	"deck.h"
 
-1727832831 source:c:\users\leoou\onedrive\desktop\projects\cards\src\gamestate.cpp
+1728191032 source:c:\users\leoou\onedrive\desktop\projects\cards\src\gamestate.cpp
 	"../headers/gamestate.h"
 
-1727831094 c:\users\leoou\onedrive\desktop\projects\cards\headers\gamestate.h
+1728190990 c:\users\leoou\onedrive\desktop\projects\cards\headers\gamestate.h
 	"deck.h"
 	"enemyCards.h"
 

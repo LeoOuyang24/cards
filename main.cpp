@@ -14,6 +14,7 @@
 #include "headers/gamestate.h"
 
 
+
 int main(int args, char* argsc[])
 {
     //delete ptr;
@@ -57,7 +58,6 @@ int main(int args, char* argsc[])
     ViewPort::setZRange((0.1,100);
     camera.init({0,0,CAMERA_Z});
     ViewPort::currentCamera = &camera;*/
-    Deck deck;
     auto start = loadHand();
     for (auto card : start)
     {
@@ -67,6 +67,7 @@ int main(int args, char* argsc[])
 
     GameState::getGameState()->newTurn();
 
+    EnemyState enemy(("sprites/card_back.png"));
     MasterCardsUI::init();
 
    // auto asdf = hand.draw(deck,10);

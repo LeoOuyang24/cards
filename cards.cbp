@@ -57,7 +57,20 @@
 			<Add directory="../../freetype-2.13.0/objs" />
 			<Add directory="../../resources" />
 		</Linker>
+		<Unit filename="headers/UI.h" />
+		<Unit filename="headers/card_text.h" />
+		<Unit filename="headers/deck.h" />
+		<Unit filename="headers/enemyCards.h" />
+		<Unit filename="headers/gamestate.h" />
+		<Unit filename="headers/loader.h" />
+		<Unit filename="libraries/json.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/UI.cpp" />
+		<Unit filename="src/card_text.cpp" />
+		<Unit filename="src/deck.cpp" />
+		<Unit filename="src/enemyCards.cpp" />
+		<Unit filename="src/gamestate.cpp" />
+		<Unit filename="src/loader.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
