@@ -1,9 +1,0 @@
-{
-	"name": "Rusty Dagger",
-	"sprite":"dagger",
-	"stats":{
-		"gold": 0,
-		"damage": 5,
-		"food": 5
-	}
-}

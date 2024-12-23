@@ -2,6 +2,7 @@
 #define GAMESTATE_H_INCLUDED
 
 #include "deck.h"
+#include "player.h"
 #include "enemyCards.h"
 
 
@@ -75,6 +76,7 @@ public:
 
 class EnemyState
 {
+    EnemyPtr restEvent; //the rest event scenario
     EnemyPtr enemy;
     Deck deck;
 public:
@@ -82,8 +84,10 @@ public:
     //set enemy, taking ownership of it. Usually used for enemies that are not in the deck
     void setEnemy(EnemyCard* card);
     void setNextEnemy(); //replace the current enemy with the next card on the deck. Slightly more efficient than using setEnemy() by using moves
+    void restTime(); //replace the current enemy with the rest time event
     const EnemyPtr& getEnemy() const;
     const Deck& getDeck() const;
+    void addCardToDeck(const EnemyPtr& ptr);
 
 };
 
@@ -93,6 +97,7 @@ enum CardSpots //places a card can be
     HAND, //in the hand,
     BOARD //on the board, ready to be traded
 };
+
 
 class GameState
 {
@@ -107,6 +112,7 @@ class GameState
     static std::unique_ptr<GameState> curState;
 
     EnemyState enemy;
+    PlayerState player;
 public:
     static GameState* getGameState();
     static void init();
@@ -114,7 +120,8 @@ public:
     const CardPtr& addCard(Card* card, CardSpots);
     const CardPtr& getCard(Card* card);
     CardSpots getCardSpot(Card* card); //returns NOWHERE if card cannot be found
-    const EnemyState& getEnemyState() const;
+    EnemyState& getEnemyState();
+    const PlayerState& getPlayerState() const;
     StateTracker const* getTracker(CardSpots spots);
     template<typename T>
     T const* getTracker()
@@ -124,12 +131,11 @@ public:
 
     void removeCard(Card* card); //kill a card permanently
     void clear(CardSpots spot); //remove all cards from a spot. If NOWHERE is passed, ALL cards are removed
-
     void newTurn();
 
-
-
-
+    void addEnemyCardToDeck(EnemyCard* card);
+    void playerTakeDamage(int damage);
+    void playerChangeHunger(int amount);
 
 };
 

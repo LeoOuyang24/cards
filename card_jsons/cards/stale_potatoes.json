@@ -1,0 +1,9 @@
+{
+	"name": "Stale Potatoes",
+	"sprite":"potatoes",
+	"stats":{
+		"gold": 0,
+		"attack": 0,
+		"food": 5
+	}
+}

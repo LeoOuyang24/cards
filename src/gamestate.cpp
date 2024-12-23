@@ -1,4 +1,6 @@
 #include "../headers/gamestate.h"
+#include "../headers/UI.h"
+
 
 void BoardState::addCard(const CardWeakPtr& card)
 {
@@ -64,7 +66,7 @@ const HandType& HandState::getHand() const
 
 EnemyState::EnemyState(std::string cardBack) : deck(new Sprite(cardBack))
 {
-
+    restEvent.reset(new EnemyCard("Time to Rest","sprites/cardfaces/resting.png",{new Trade({0,0,5},{}),new StarveChoice()}));
 }
 
 void EnemyState::setEnemy(EnemyCard* card)
@@ -79,6 +81,15 @@ void EnemyState::setNextEnemy()
         enemy = std::move(deck.getTop());
         deck.pop();
     }
+    else
+    {
+        enemy.reset();
+    }
+}
+
+void EnemyState::restTime()
+{
+    enemy = restEvent;
 }
 
 const EnemyPtr& EnemyState::getEnemy() const
@@ -90,6 +101,12 @@ const Deck& EnemyState::getDeck() const
 {
     return deck;
 }
+
+void EnemyState::addCardToDeck(const EnemyPtr& ptr)
+{
+    deck.addCard(ptr);
+}
+
 
 std::unique_ptr<GameState> GameState::curState;
 
@@ -143,9 +160,14 @@ const CardPtr& GameState::getCard(Card* card)
     return cards[card].first;
 }
 
-const EnemyState& GameState::getEnemyState() const
+EnemyState& GameState::getEnemyState()
 {
     return enemy;
+}
+
+const PlayerState& GameState::getPlayerState() const
+{
+    return player;
 }
 
 CardSpots GameState::getCardSpot(Card* card)
@@ -186,5 +208,34 @@ void GameState::clear(CardSpots spot)
 
 void GameState::newTurn()
 {
-    enemy.setNextEnemy();
+    player.decrementHunger(1);
+    if (player.getHunger() <= 0)
+    {
+        enemy.restTime();
+    }
+    else
+    {
+        enemy.setNextEnemy();
+    }
+}
+
+void GameState::playerTakeDamage(int damage)
+{
+    player.changeHealth(player.getHealth() - damage);
+}
+
+void GameState::playerChangeHunger(int hunger)
+{
+    player.changeHunger(hunger);
+}
+
+
+void GameState::addEnemyCardToDeck(EnemyCard* card)
+{
+    if (card)
+    {
+        EnemyPtr ptr(card);
+        enemy.addCardToDeck(std::move(ptr));
+    }
+
 }

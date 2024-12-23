@@ -5,23 +5,131 @@
 
 #include "render.h"
 
+typedef std::string ResourceID; //identifier for a resource
+
+struct Resource //a single resource
+{
+    int value = 0;
+    ResourceID name = "";
+    char icon = '\0';
+
+    //predefined resources, copy them
+    const static Resource coins;
+    const static Resource damage;
+    const static Resource food;
+};
+
+
+
+
 //represents how much resource each card provides
+//may also represent how much resource is needed for a trade
 struct ResourceStats
 {
-    int coins = 0;
-    int damage = 0;
-    int food = 0;
+    //in the future, maybe the key should be an enum
+    //for now I think it's easier for it to be a string
+    std::unordered_map<ResourceID,Resource> resources;
 
-    std::string toString()
+    int getValue(ResourceID name) const//get value of a resource
     {
-        return "[Coins: " + std::to_string(coins) + ", Damage: " + std::to_string(damage) + ", Food: " + std::to_string(food) + "]";
+        return resources.find(name) != resources.end() ? resources.at(name).value : 0;
+    }
+
+    void setValue(ResourceID name, int val)
+    {
+        resources[name].value = val;
+    }
+
+    ResourceStats()
+    {
+        resources[Resource::coins.name] = Resource::coins;
+        resources[Resource::damage.name] = Resource::damage;
+        resources[Resource::food.name] = Resource::food;
+    }
+    ResourceStats(std::initializer_list<int> nums) : ResourceStats()
+    {
+        int i = 0;
+        for (auto it : nums)
+        {
+            resources[i == 0 ? Resource::coins.name : (i == 1 ? Resource::damage.name : Resource::food.name)].value = it;
+            i++;
+            if (i >= 3)
+            {
+                break;
+            }
+        }
+    }
+
+    Resource& operator[](ResourceID str)
+    {
+        return resources[str];
+    }
+
+    //run a lambda on every pair in the resources. ( Resource&) -> void, (Resource&) -> bool
+    //if the lambda returns a false, it ends early
+    //isConst = true if the function doesn't modify the original object
+    template<typename T>
+    void forEach(T func)
+    {
+        for (auto& [key, value] : resources)
+        {
+            if constexpr(std::is_same<decltype(func),bool>::value)
+            {
+                if (!func(value))
+                {
+                    break;
+                }
+            }
+            else
+            {
+                func(value);
+            }
+        }
+    }
+    //same as above but const
+    template<typename T>
+    void forEach(T func) const
+    {
+        for ( const auto& [key, value] : resources)
+        {
+            if constexpr(std::is_same<decltype(func),bool>::value)
+            {
+                if (!func(value))
+                {
+                    break;
+                }
+            }
+            else
+            {
+                func(value);
+            }
+        }
+    }
+    std::string toString(bool oneline = true)
+    {
+        std::string message = "[";
+        forEach([&message,oneline](Resource& resource){
+                message += resource.name + ": " + std::to_string(resource.value) + (oneline ? ", " : "\n");
+                });
+        message += "]";
+
+        return message;
     }
     ResourceStats operator+(const ResourceStats& b) const
     {
-        return {coins + b.coins,damage + b.damage, food + b.food};
+        ResourceStats n = b;
+        n.resources.insert(resources.begin(),resources.end());
+        n.forEach([this,&b,&n](Resource& resource){
+                n.resources[resource.name].value = b.getValue(resource.name) + getValue(resource.name);
+                });
+        return n;
     }
     ResourceStats operator*(int num) const    {
-        return {coins*num, damage*num, food*num};
+        ResourceStats n;
+       n. forEach([this,num,&n](Resource& resource){
+                n.resources[resource.name].value = resource.value*num;
+                });
+        return n;
     }
     ResourceStats operator-(const ResourceStats& b) const
     {
@@ -37,15 +145,29 @@ struct ResourceStats
     }
     bool operator == (const ResourceStats& a)
     {
-        return coins == a.coins && damage == a.damage && food == a.food;
+        bool t = true;
+        forEach([this,&a,&t](Resource& resource){
+                t = (resource.value == a.getValue(resource.name));
+                return t;
+                });
     }
     bool operator >= (const ResourceStats& a)
     {
-        return (coins >= a.coins && damage >= a.damage && food >= a.food);
+        bool t = true;
+        forEach([this,&a,&t](Resource& resource){
+                t = t && (resource.value >= a.getValue(resource.name));
+                return t;
+                });
+        return t;
     }
     bool operator <= (const ResourceStats& a)
     {
-        return  (coins <= a.coins && damage <= a.damage && food <= a.food);
+        bool t = true;
+        forEach([this,&a,&t](Resource& resource){
+                t = t && (resource.value <= a.getValue(resource.name));
+                return t;
+                });
+        return t;
     }
 
 };

@@ -22,7 +22,8 @@ public:
     static constexpr GLchar damageChar = coinChar + 1;
     static constexpr GLchar foodChar = damageChar + 1;
     //returns the card description for a card with resources
-    static std::string getCardResourceString(const ResourceStats& stats);
+    //oneline = true if we want to print the whole thing on one line
+    static std::string getCardResourceString(const ResourceStats& stats, bool oneline = false);
 
     CardTextFont();
 

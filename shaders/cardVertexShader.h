@@ -26,7 +26,6 @@ void main()
 
     texCoord = vec2((values.x + 1)/2.0f, (values.y + 1)/2.0f);
 
-
    // gl_Position.z = depth;
 
 }

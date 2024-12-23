@@ -63,6 +63,7 @@
 		<Unit filename="headers/enemyCards.h" />
 		<Unit filename="headers/gamestate.h" />
 		<Unit filename="headers/loader.h" />
+		<Unit filename="headers/player.h" />
 		<Unit filename="libraries/json.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/UI.cpp" />
@@ -71,6 +72,7 @@
 		<Unit filename="src/enemyCards.cpp" />
 		<Unit filename="src/gamestate.cpp" />
 		<Unit filename="src/loader.cpp" />
+		<Unit filename="src/player.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

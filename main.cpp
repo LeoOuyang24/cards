@@ -51,20 +51,21 @@ int main(int args, char* argsc[])
     GameState::init();
 
     CardUI::cardTextFont.reset((new CardTextFont()));
+    std::string source = templateShader(stripComments(readFile(ResourcesConfig::config[ResourcesConfig::RESOURCES_DIR] + "/shaders/vertex/betterShader.h").first), true,
+                                        {"vec4 color"},
+                                        {"vec4 shade"},
+                                        {"shade = color"});
+    CardUI::cardTextShader.reset(new BasicRenderPipeline({LoadShaderInfo{source,GL_VERTEX_SHADER,false},
+                                                          LoadShaderInfo{"./shaders/cardTextFragment.h",GL_FRAGMENT_SHADER,true}}
+                                                          ));
     CardUI::blankCard.init("sprites/cards/card_template.png");
-    //Callable* ptr = (new SequenceUnit([](int runtime,Callable&){}));
 
-    /*RenderCamera camera;
-    ViewPort::setZRange((0.1,100);
-    camera.init({0,0,CAMERA_Z});
-    ViewPort::currentCamera = &camera;*/
     auto start = loadHand();
     for (auto card : start)
     {
         GameState::getGameState()->addCard(card,HAND);
     }
     //Hand hand(start);
-
     GameState::getGameState()->newTurn();
 
     EnemyState enemy(("sprites/card_back.png"));
@@ -73,6 +74,7 @@ int main(int args, char* argsc[])
    // auto asdf = hand.draw(deck,10);
     //masterUI.drawCards(asdf);
     glm::vec4 handRect = GameUI::getHandRect();
+
     while (!quit)
     {
         while (SDL_PollEvent(&e))
@@ -91,6 +93,7 @@ int main(int args, char* argsc[])
             MouseManager::update(e);
         }
 
+
         if (KeyManager::getJustPressed() == SDLK_BACKQUOTE)
         {
             std::cout << GameState::getGameState()->getTracker<BoardState>()->getResources().toString() << "\n";
@@ -100,6 +103,8 @@ int main(int args, char* argsc[])
 
         //enemyUI.update();
         MasterCardsUI::getUI()->update();
+        MasterCardsUI::getUI()->playerUI.render();
+        //FontGlobals::tnr.requestWrite({"game over",glm::vec4(100,100,500,200),1,glm::vec4(1,0,0,1),0,GameUI::effectsZ});
 
         //PolyRender::requestRect(glm::vec4(0,0,screenWidth,screenHeight),glm::vec4(1,0,0,1),true,0,0);
         PolyRender::requestRect(handRect,glm::vec4(0,0.7,0,1),false,0,0);
@@ -108,7 +113,7 @@ int main(int args, char* argsc[])
         PolyRender::requestRect(GameUI::getDeckRect(),glm::vec4(1,0,1,1),false,0,0);
 
         //Font::tnr.requestWrite({"HELLO!!!!",{320,320,100,100},{1,0,0,1},0,1});
-
+        //ui.effectsProgram->draw(GL_TRIANGLES,1,glm::vec4(1,0,0,1));
 
         SequenceManager::run();
 

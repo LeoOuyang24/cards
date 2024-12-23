@@ -16,17 +16,27 @@ CardTextChar::CardTextChar(char c, std::string spritePath) : Character(c)
     Sprite::load(spritePath);
 
      size =     glm::ivec2(width/5, height/5);
-    bearing =  {10,size.y};
-    advance =  width*10;
+    bearing =  {5,size.y};
+    advance = 2000;
 
 }
 
 
-std::string CardTextFont::getCardResourceString(const ResourceStats& stats)
+std::string CardTextFont::getCardResourceString(const ResourceStats& stats, bool oneline)
 {
-    return (stats.coins > 0 ? (std::to_string(stats.coins) + coinChar) : "") +
-            (stats.damage > 0 ? ((stats.coins > 0 ? "\n" : "") + std::to_string(stats.damage) + damageChar) : "") +
-            (stats.food > 0 ? ((stats.coins > 0 || stats.damage > 0 ? "\n" : "") + std::to_string(stats.food) + foodChar) : "");
+    std::string message = "";
+    int num = 0;
+
+    stats.forEach([oneline,&message,&num](const Resource& r){
+                  message += (!oneline && num > 0 && r.value > 0) ? "\n" : "";
+                  message += r.value > 0 ? std::to_string(r.value) + r.icon : "";
+                  num += (r.value > 0);
+                  });
+    return message;
+
+    /*return (stats.coins > 0 ? (std::to_string(stats.coins) + coinChar) : "") +
+            (stats.damage > 0 ? ((!oneline && stats.coins > 0 ? "\n" : "") + std::to_string(stats.damage) + damageChar) : "") +
+            (stats.food > 0 ? ((!oneline && (stats.coins > 0 || stats.damage > 0) ? "\n" : "") + std::to_string(stats.food) + foodChar) : "");*/
 }
 
 CardTextFont::CardTextFont() : Font()

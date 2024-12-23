@@ -1,0 +1,23 @@
+{
+	"name": "Grandma",
+	"isEnemy": true,
+	"sprite":"grandma",
+	"choices":[
+		{
+			"type": "trade",
+			"stats":{
+				"coins": 0,
+				"damage": 5,
+				"food": 5
+				},
+			"get": ["stale_potatoes"]
+		},
+		{
+			"type": "attack",
+			"stats":{
+				"damage":5
+				},
+			"get": ["stale_potatoes"]
+		}
+	]
+}

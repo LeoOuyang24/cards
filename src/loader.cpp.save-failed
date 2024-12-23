@@ -1,0 +1,165 @@
+#include "../headers/loader.h"
+
+#include "../libraries/json.hpp"
+using json = nlohmann::json;
+
+#include "../headers/card_text.h"
+#include "../headers/enemyCards.h"
+#include "../headers/gamestate.h"
+
+typedef std::unordered_map<std::string, json> JSONType; //type of a generic json
+
+template<typename T>
+T loadJsonField(const json& data, std::string key, T null) //attempts to find the data in "data" with key "key", returns "null" if its not found
+{
+    if (data.find(key) == data.end())
+    {
+        return data[key];
+    }
+    else
+    {
+        return null;
+    }
+}
+
+
+ResourceStats loadStats(const json& data)
+{
+    ResourceStats stats;
+
+    stats.coins = loadJsonField(data,"coins",0);
+    stats.damage = loadJsonField(data,"damage",0);
+    stats.food = loadJsonField(data,"food",0);
+
+    return stats;
+}
+
+
+Choice* loadChoice(const json& data)
+{
+    ChoiceTypes type = Choice::stringToChoice[loadJsonField(data,"type",std::string(""))];
+
+    switch (type)
+    {
+    case TRADE:
+    case ATTACK:
+        ResourceStats resources = loadStats(loadJsonField<json>(data,"stats",{}));
+        CardRewards rewards;
+
+        if (data.find("get") != data.end())
+        {
+            if (data["get"].type() == json::value_t::string) //only a single entry in rewards
+            {
+                rewards.push_back(std::shared_ptr<Card>(loadCard(data["get"])));
+            }
+            else if (data["get"].type() == json::value_t::array)
+            {
+                std::vector<std::string> unloaded = data["get"];
+                for (auto card : unloaded) //load each reward
+                {
+                    rewards.push_back(std::shared_ptr<Card>(loadCard(card)));
+                }
+            }
+        }
+        return type == TRADE ? new Trade(resources,rewards) : new Attack(resources.damage,std::move(rewards),[](){
+                                        GameState::getGameState()->addEnemyCardToDeck(new EnemyCard("Guard","sprites/cardfaces/guard.png",
+                                                                                    {new Attack(10,{},{}),new HurtChoice(1)}
+                                                                                                    ));
+                                                    });
+
+    }
+}
+
+EnemyCard* loadEnemyCard(const json& data)
+{
+    std::string name = loadJsonField(data,"name",std::string(""));
+    std::string spritePath = loadJsonField(data,"sprite",std::string(""));
+    std::vector<JSONType> choices = loadJsonField(data,"choices",std::vector<JSONType>{});
+
+    std::vector<Choice*> loadedChoices;
+
+    for (auto choice : choices)
+    {
+        loadedChoices.push_back(loadChoice(choice));
+    }
+
+    EnemyCard* enemy = new EnemyCard(name,spritePath,loadedChoices.begin(),loadedChoices.end());
+
+    return enemy;
+}
+
+Card* loadPlayerCard(const json& data)
+{
+    Card* result = nullptr;
+     if (data.find("text") != data.end())
+    {
+        std::string text = data["text"];
+        result = new Card(data["name"],"./sprites/cardfaces/" + std::string(data["sprite"]) + ".png",text);
+    }
+    else if (data.find("stats") != data.end())
+    {
+        ResourceStats stats;
+        stats.food = (data["stats"].find("food") != data["stats"].end()) ? (int)data["stats"]["food"] : 0;
+        stats.coins = (data["stats"].find("gold") != data["stats"].end()) ? (int)data["stats"]["gold"] : 0;
+        stats.damage = (data["stats"].find("damage") != data["stats"].end()) ? (int)data["stats"]["damage"] : 0;
+        result = new Card(data["name"],"./sprites/cardfaces/" + std::string(data["sprite"]) + ".png",stats);
+
+    }
+    else
+    {
+        std::cerr << "loadPlayerCard: Somehow couldn't load data!\n";
+    }
+    return nullptr;
+}
+
+Card* loadCard(std::string jason)
+{
+            if (jason.substr(jason.size() - 5, 5) != ".json") //check if ".json" is at the end
+        {
+            jason += ".json";
+        }
+        std::ifstream f(jason);
+        if (f.fail())
+        {
+            f.open("card_jsons/cards/" + jason); //attempt to build path if the provided doesn't work
+            if (f.fail())
+            {
+                f.open("card_jsons/enemies/" + jason);
+                if (f.fail())
+                {
+                     std::cerr << "loadCard ERROR: failed to load " << jason << "\n";
+                     exit(1);
+                }
+            }
+        }
+        json data = json::parse(f);
+        Card* result = nullptr;
+        if (data.find("isEnemy") != data.end() && data["isEnemy"]) //if is an enemy (the isEnemy field is provided AND is set to true)
+        {
+            result = loadEnemyCard(data);
+        }
+        else
+        {
+            result = loadPlayerCard(data);
+        }
+
+        f.close();
+        std::cout << result << "\n";
+        return result;
+}
+
+std::vector<Card*> loadHand()
+{
+    std::string folderPath = "./card_jsons/cards/";
+
+    std::vector<Card*> hand;
+    for (const auto & entry : std::filesystem::directory_iterator(folderPath))
+        {
+            Card* card = loadCard(entry.path().string());
+            std::cout << "created\n";
+            hand.push_back(card);
+            std::cout << "looping\n";
+
+        }
+    return hand;
+}

@@ -16,8 +16,12 @@ struct GameUI
     static glm::vec4 getEnemyRect();
     static glm::vec4 getRewardsRect();
     static glm::vec4 getDeckRect();
+    static glm::vec4 getHealthRect();
+    static glm::vec4 getHungerRect();
 
     static constexpr int backgroundZ = 0;
+    static constexpr int cardHoverZ = backgroundZ+2; //z where cardui that gets hovered over gets rendered at
+    static constexpr int effectsZ = backgroundZ + 3; //z for any visual effects, such as taking damage
 };
 
 //orientation of a cardui
@@ -53,11 +57,12 @@ protected:
 public:
     static constexpr glm::vec2 CARD_DIMENS = {120,168};
     static std::unique_ptr<CardTextFont> cardTextFont;
+    static std::unique_ptr<BasicRenderPipeline> cardTextShader;
     static Sprite blankCard; //sprite for a blank card
 
     CardUI(const CardPtr& card_,const CardUIOrient& orient_);
 
-    Card* getCard();
+    Card* getCard() const;
     CardWeakPtr& getCardPtr();
     glm::vec4 getRect();
     float getAngle();
@@ -128,6 +133,8 @@ class EnemyUI
 {
 public:
     void setEnemyCard(const std::shared_ptr<EnemyCard>& card);
+    const EnemyCardUI& getCurrentEnemy();
+
     void draw(const std::shared_ptr<EnemyCard>& card); //set enemy card and play a drawing animation
     void update();
 private:
@@ -140,6 +147,29 @@ class RewardCardUI : public CardUI
     //void onClick();
 public:
     virtual bool handleInput();
+};
+
+
+//handles visual effects
+class EffectsUI
+{
+    typedef std::unique_ptr<BasicRenderPipeline> EffectsPipeline;
+    //a shader for effects
+    //rn it's basically just a glorified PolyRenderer that follows z sorting
+    EffectsPipeline effectsProgram;
+
+    //used for rendering a bleeding card
+    EffectsPipeline bleedingCorpse;
+    std::unique_ptr<Sprite> bloodSplatter;
+    std::unique_ptr<Font> EffectsUIFont;
+
+    Sequencer* floatingText(std::string text, const glm::vec3& color, const glm::vec2& point, Font& font) const; //renders some floating text
+public:
+    EffectsUI();
+    Sequencer* killAMfer() const;
+    Sequencer* takeDamage() const;
+    Sequencer* addHunger(int amount) const;
+    Sequencer* die() const;
 };
 
 class MasterCardsUI
@@ -165,21 +195,20 @@ public:
     HandUI handUI;
     BoardUI boardUI;
     EnemyUI enemyUI;
+    EffectsUI effectsUI;
+    PlayerUI playerUI;
 
     static void init();
     static MasterCardsUI* getUI();
     static std::unique_ptr<BasicRenderPipeline> CardShader;//standard card shader
     void newTurn();
 
-
     //add a card. Literally as raw as possible; doesn't add to hand or anything
     CardUIPtr addCard(const CardPtr& card);
-
 
     //add some drawn cards. also adds them to handui, which plays a little drawing animation
     //handui also handles orienting the cards
     void drawCards(std::vector<CardPtr>& cards);
-
 
     void moveCard(CardUIPtr& card, bool toHand); //move a card to the hand or board
 
@@ -187,11 +216,17 @@ public:
     //For now I'm doing it here because it allows me to add/remove the card to/from MasterCardsUI as well as the respective UI
     CardUIPtr addCardToHand(Card* card,const CardUIOrient& rect); //create a card and add it to hand. Origin rect is an animation
     void clearBoard(); //clear all cards from teh board, removing them completely from teh game.
+    void choseChoice(Choice& trade);
+    void killEnemy(Attack& attack); //trigger an attack and kill an enemy. currently unused
+    void playerTakeDamage(int damage);
+    void playerChangeHunger(int hunger);
+
 
     void removeCard(CardUIPtr& card);
-
     //load a hand into ui
     void loadHand(const HandType& hand);
     void update();
+
 };
+
 #endif // UI_H_INCLUDED

@@ -3,6 +3,12 @@
 #include "../headers/deck.h"
 #include "../headers/UI.h"
 #include "../headers/card_text.h"
+#include "../headers/loader.h"
+
+const Resource Resource::coins = {0,"coins",CardTextFont::coinChar};
+const Resource Resource::damage = {0,"damage",CardTextFont::damageChar};
+const Resource Resource::food = {0,"food",CardTextFont::foodChar};
+
 
 Card::Card(std::string name_,std::string spritePath, std::string text_) : text(text_), name(name_)
 {
