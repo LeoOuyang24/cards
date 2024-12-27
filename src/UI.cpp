@@ -86,7 +86,7 @@ bool CardUIOrient::isFacedown() const
 void CardUI::onHover()
 {
     glm::vec2 dimen = 1.75f*CardUI::CARD_DIMENS;
-    render({glm::vec4(getRect().x,getRect().y - .5f*dimen.y,dimen),0,GameUI::cardHoverZ});
+    CardRenderer::render(*getCard(),{glm::vec4(getRect().x,getRect().y - .5f*dimen.y,dimen),0,GameUI::cardHoverZ});
 }
 
 CardUI::CardUI(const CardPtr& card_,const CardUIOrient& orient_) : card(card_),orient(orient_)
@@ -95,7 +95,7 @@ CardUI::CardUI(const CardPtr& card_,const CardUIOrient& orient_) : card(card_),o
 }
 
 
-Card* CardUI::getCard() const
+BaseCard* CardUI::getCard() const
 {
     return card.lock().get();
 }
@@ -125,6 +125,11 @@ bool CardUI::getInHand()
     return inHand;
 }
 
+CardUIOrient CardUI::getOrient()
+{
+    return orient;
+}
+
 void CardUI::setInHand(bool val)
 {
     inHand = val;
@@ -145,51 +150,15 @@ void CardUI::setOrient(const CardUIOrient& orientation)
     orient = orientation;
 }
 
-glm::vec4 CardUI::getCardTextRect(const glm::vec4& pos)
-{
-    return glm::vec4(pos.x + .1*pos.z,pos.y+135.0/278*pos.a,.8*pos.z,pos.a*.4f);
-}
-
-void CardUI::renderCardText(const glm::vec4& pos, float angle, int z)
-{
-    glm::vec2 center = {pos.x + pos.z/2, pos.y + pos.a/2};
-    glm::vec4 textRect = rotateRect(getCardTextRect(pos),center,angle); //rect where we render card text
-
-    cardTextFont->requestWrite({getCard()->getText(),
-                                textRect,
-                                -1.f,{1,1,1,1},angle,z,CENTER,DOWN},*cardTextShader);
-}
 
 void CardUI::render()
 {
-    render(orient);
-}
-
-void CardUI::render(const CardUIOrient& o)
-{
-    if (Card const * ptr = getCard())
+    if (BaseCard const * ptr = getCard())
     {
-        glm::vec2 center = {o.rect.x + o.rect.z/2, o.rect.y + o.rect.a/2};
-
-        glm::vec4 spriteRect = rotateRect(glm::vec4(o.rect.x + .1*o.rect.z,o.rect.y + .03*o.rect.a  ,.8*o.rect.z,110.0/278*o.rect.a),center,o.angle); //rect where we render the sprite
-        glm::vec4 nameRect = rotateRect(glm::vec4(o.rect.x + .26*o.rect.z,o.rect.y + 120.0/278*o.rect.a,0.48*o.rect.z,.06*o.rect.a),center,o.angle); //rect where we render the name
-
-
-        SpriteManager::requestSprite({*MasterCardsUI::CardShader,&blankCard},
-                             o.rect,o.z,o.angle, o.flip);
-
-        SpriteManager::requestSprite({*MasterCardsUI::CardShader,ptr->getSprite()},
-                                     spriteRect,o.z,o.angle, o.flip);
-
-        renderCardText(o.rect,o.angle,o.z);
-
-        cardTextFont->requestWrite({ptr->getName(),
-                                   nameRect,
-                                   -1.f,{0,0,0,1},o.angle,o.z,CENTER, VERTCENTER
-                                   },*MasterCardsUI::CardShader);
-
+        CardRenderer::render(*ptr,orient);
     }
 }
+
 
 bool CardUI::handleInput()
 {
@@ -209,6 +178,52 @@ bool CardUI::handleInput()
     }
     return false;
 }
+
+
+
+glm::vec4 CardRenderer::getCardTextRect(const glm::vec4& pos)
+{
+    return glm::vec4(pos.x + .1*pos.z,pos.y+135.0/278*pos.a,.8*pos.z,pos.a*.4f);
+}
+
+
+glm::vec4 CardRenderer::getChoiceRect(const glm::vec4& fullCardRect, int index)
+{
+    glm::vec4 textRect = getCardTextRect(fullCardRect);
+    const int choiceHeight = textRect.a*(1.0/EnemyCard::maxChoices); //height of each choice
+    return glm::vec4(textRect.x,textRect.y + choiceHeight*index,textRect.z,choiceHeight);
+}
+
+void CardRenderer::render(const BaseCard& ptr, const CardUIOrient& o)
+{
+    if (o.isFacedown()) //if face down, render the deck's cardback
+    {
+        SpriteManager::requestSprite({*MasterCardsUI::CardShader,GameState::getGameState()->getEnemyState().getDeck().getCardBack()},o.rect,o.z,o.angle,o.flip);
+    }
+    else
+    {
+        glm::vec2 center = {o.rect.x + o.rect.z/2, o.rect.y + o.rect.a/2};
+
+        glm::vec4 spriteRect = rotateRect(glm::vec4(o.rect.x + .1*o.rect.z,o.rect.y + .03*o.rect.a  ,.8*o.rect.z,110.0/278*o.rect.a),center,o.angle); //rect where we render the sprite
+        glm::vec4 nameRect = rotateRect(glm::vec4(o.rect.x + .26*o.rect.z,o.rect.y + 120.0/278*o.rect.a,0.48*o.rect.z,.06*o.rect.a),center,o.angle); //rect where we render the name
+
+
+        SpriteManager::requestSprite({*MasterCardsUI::CardShader,&CardUI::blankCard},
+                             o.rect,o.z,o.angle, o.flip);
+
+        SpriteManager::requestSprite({*MasterCardsUI::CardShader,ptr.getSprite()},
+                                     spriteRect,o.z,o.angle, o.flip);
+
+        ptr.renderCardText(o.rect,o.angle,o.z);
+
+        CardUI::cardTextFont->requestWrite({ptr.getName(),
+                                   nameRect,
+                                   -1.f,{0,0,0,1},o.angle,o.z,CENTER, VERTCENTER
+                                   },*MasterCardsUI::CardShader);
+    }
+
+}
+
 
 CardUIOrient HandUI::getCardUIRect(int index, int handSize)
 {
@@ -365,34 +380,18 @@ void BoardUI::render()
     }
 }
 
-glm::vec4 EnemyCardUI::getChoiceRect(const glm::vec4& fullCardRect, int index)
+
+EnemyCardUI::EnemyCardUI(const std::shared_ptr<EnemyCard>& card_) : CardUI(std::static_pointer_cast<BaseCard>(card_),{GameUI::getEnemyRect(),0}) //by default, enemy cards are locked to a position and angle
 {
-    glm::vec4 textRect = getCardTextRect(fullCardRect);
-    const int choiceHeight = textRect.a*(1.0/EnemyCard::maxChoices); //height of each choice
-    return glm::vec4(textRect.x,textRect.y + choiceHeight*index,textRect.z,choiceHeight);
+
 }
 
-
-void EnemyCardUI::renderCardText(const glm::vec4& pos, float angle, int z)
+void EnemyCardUI::render()
 {
-    if ( EnemyCard const* card = static_cast<EnemyCard const *>(getCard()))
-    {
-        Choices const* choices = &card->getChoices();
-        glm::vec2 mousePos = pairtoVec(MouseManager::getMousePos());
-        float angle = getAngle();
-        for (int i = 0; i < choices->size(); i++)
-        {
-            glm::vec4 choiceRect = getChoiceRect(pos,i);
-
-            choices->at(i)->render(choiceRect);
-
-        }
-    }
-}
-
-EnemyCardUI::EnemyCardUI(const std::shared_ptr<EnemyCard>& card_) : CardUI(card_,{GameUI::getEnemyRect(),0}) //by default, enemy cards are locked to a position and angle
-{
-
+   if (const EnemyCard* card = static_cast<EnemyCard*>(getCard()))
+   {
+       CardRenderer::render(*card,getOrient());
+   }
 }
 
 bool EnemyCardUI::handleInput()
@@ -406,7 +405,7 @@ bool EnemyCardUI::handleInput()
 
         for (int i = 0; i < choices->size(); i++)
         {
-            glm::vec4 choiceRect = getChoiceRect(ourRect,i);
+            glm::vec4 choiceRect = CardRenderer::getChoiceRect(ourRect,i);
             if (pointInVec(choiceRect,mousePos,angle))
             {
                 PolyRender::requestRect(choiceRect,glm::vec4(1,0,0,0.5),true,angle,getZ()+1);
@@ -421,17 +420,6 @@ bool EnemyCardUI::handleInput()
     return false;
 }
 
-void EnemyCardUI::render(const CardUIOrient& o)
-{
-    if (o.isFacedown()) //if face down, render the deck's cardback
-    {
-        SpriteManager::requestSprite({*MasterCardsUI::CardShader,GameState::getGameState()->getEnemyState().getDeck().getCardBack()},o.rect,o.z,o.angle,o.flip);
-    }
-    else
-    {
-        CardUI::render(o);
-    }
-}
 
 void EnemyUI::setEnemyCard(const std::shared_ptr<EnemyCard>& card)
 {
@@ -461,89 +449,6 @@ void EnemyUI::update()
         ui->handleInput();
     }
     SpriteManager::requestSprite({*ViewPort::basicProgram,GameState::getGameState()->getEnemyState().getDeck().getCardBack()},GameUI::getDeckRect(),1);
-}
-
-bool RewardCardUI::handleInput()
-{
-    glm::vec2 mousePos = pairtoVec(MouseManager::getMousePos());
-    if (pointInVec(getRect(),mousePos,getAngle()) && MouseManager::getJustClicked() == SDL_BUTTON_LEFT)
-    {
-       // MasterCardsUI::CardsUI.handUI.addCard(CardUIPtr(getCard())) //need a way to add a card
-    }
-}
-
-Sequencer* EffectsUI::floatingText(std::string text, const glm::vec3& color, const glm::vec2& point, Font& font) const
-{
-    return new Sequencer([&font,color,text,point](int time){
-                            font.requestWrite({text,glm::vec4(point - glm::vec2(0,time/100.0f),0,0),1.5f,glm::vec4(color,time/1000.0f),0,GameUI::effectsZ
-                                   },*CardUI::cardTextShader);
-                            return time >= 1000;
-                         });
-}
-
-EffectsUI::EffectsUI()
-{
-    effectsProgram.reset(new RenderProgram("./shaders/polygonVertex.h",
-                                        ResourcesConfig::config[ResourcesConfig::RESOURCES_DIR] + "/shaders/fragment/simpleFragment.h"));
-    bleedingCorpse.reset(new RenderProgram({LoadShaderInfo{templateShader(stripComments(readFile("./shaders/cardVertexShader.h").first), true,
-                                                          {"int time"},
-                                                          {"int ms" },
-                                                          {"ms = time"}
-                                                          ),GL_VERTEX_SHADER,false},
-                                           {"./shaders/bleedingFragment.h",GL_FRAGMENT_SHADER}}
-                                           ));
-
-    bloodSplatter.reset(new Sprite("sprites/effects/blood.png"));
-    EffectsUIFont.reset(new Font("fonts/Cryptik.ttf"));
-}
-
-Sequencer* EffectsUI::killAMfer() const
-{
-    Sequencer* sequencer = (new Sequencer([this](int runtime){
-                    SpriteManager::request(RenderRequest{*effectsProgram},GameUI::effectsZ,GameUI::effectsZ,glm::vec4(1,0,0,1-runtime/1000.0f));
-                    SpriteManager::requestSprite({*ViewPort::basicProgram,bloodSplatter.get()},GameUI::getEnemyRect(),GameUI::effectsZ);
-                    SpriteManager::request(RenderRequest{*bleedingCorpse},GameUI::effectsZ-1,GameUI::getEnemyRect(),GameUI::effectsZ - 1,0,0,runtime);
-                    return runtime >= 1500;
-                                             }
-                                             ));
-    return sequencer;
-}
-
-Sequencer* EffectsUI::takeDamage() const
-{
-    return new Sequencer([this](int runtime){
-                        SpriteManager::request(RenderRequest{*effectsProgram},GameUI::effectsZ,GameUI::effectsZ,glm::vec4(1,0,0,1-runtime/1000.0f));
-                         return runtime >= 1000;
-                         });
-}
-
-Sequencer* EffectsUI::addHunger(int amount) const
-{
-    glm::vec4 hungerRect = GameUI::getHungerRect();
-    return floatingText((amount >= 0 ? "+" : "") + std::to_string(amount),
-                        glm::vec4(0,1,0,1),
-                        glm::vec2(hungerRect.x, GameUI::getHealthRect().y),
-                        *CardUI::cardTextFont
-                        );
-}
-
-Sequencer* EffectsUI::die() const
-{
-    return new Sequencer([this](int runtime){
-                         SpriteManager::request({*effectsProgram},GameUI::effectsZ,GameUI::effectsZ,
-                                                glm::vec4(0,0,0,std::min(1.0f,runtime/1000.0f)));
-                        return runtime >= 1000;
-                         },
-                         [this](int runtime){
-                        SpriteManager::request({*effectsProgram},GameUI::effectsZ,GameUI::effectsZ,
-                            glm::vec4(0,0,0,1));
-
-                        EffectsUIFont->requestWrite({"Game Over",glm::vec4(100,100,500,200),1,glm::vec4(1,0,0,1),0,GameUI::effectsZ+1});
-
-                        return false;
-                         }
-
-                         );
 }
 
 std::unique_ptr<MasterCardsUI> MasterCardsUI::CardsUI;
@@ -583,7 +488,7 @@ void MasterCardsUI::drawCards(std::vector<CardPtr>& drawn)
     handUI.drawCards(drawnUIs);
 }
 
-CardUIPtr MasterCardsUI::addCardToHand(Card* card, const CardUIOrient& origin) //create a card and add it to hand.
+CardUIPtr MasterCardsUI::addCardToHand(PlayerCard* card, const CardUIOrient& origin) //create a card and add it to hand.
 {
     CardPtr ptr = GameState::getGameState()->addCard(card,HAND);
     CardUIPtr UIptr = addCard(ptr);
@@ -594,12 +499,13 @@ CardUIPtr MasterCardsUI::addCardToHand(Card* card, const CardUIOrient& origin) /
 
 void MasterCardsUI::removeCard(CardUIPtr& card)
 {
-    if (Card* cardPtr = card->getCard())
+    if (BaseCard* cardPtr = card->getCard())
     {
         auto found = std::find(playerCards.begin(), playerCards.end(), card);
-        if (found != playerCards.end())
+        if (found != playerCards.end()) //found in player cards, assume it's a player card
         {
-            switch (GameState::getGameState()->getCardSpot(cardPtr)) //remove the card from the appropriate UI
+            PlayerCard* playerCard = static_cast<PlayerCard*>(cardPtr);
+            switch (GameState::getGameState()->getCardSpot(playerCard)) //remove the card from the appropriate UI
             {
                 case HAND:
                     handUI.removeCard(card);
@@ -611,7 +517,7 @@ void MasterCardsUI::removeCard(CardUIPtr& card)
                     break;
             }
             playerCards.erase(found);
-            GameState::getGameState()->removeCard(cardPtr);
+            GameState::getGameState()->removeCard(playerCard);
         }
     }
 }
@@ -621,7 +527,7 @@ void MasterCardsUI::clearBoard()
     //REFACTOR: THIS SUCKS. Maybe organize all the carduis depending on their location rather than just linear searching??
     for (auto& cardUI: playerCards)
     {
-        if (GameState::getGameState()->getCardSpot(cardUI->getCard()) == BOARD) //if this card is on the board, remove it
+        if (GameState::getGameState()->getCardSpot(static_cast<PlayerCard*>(cardUI->getCard())) == BOARD) //if this card is on the board, remove it
             {
                 removeCard(cardUI);
             }
@@ -644,7 +550,7 @@ void MasterCardsUI::choseChoice(Choice& choice)
                         newTurn();
                         return true;
                        }
-                       );
+                       )                                               ;
 
     SequenceManager::request(*sequencer);
 }
@@ -683,14 +589,14 @@ void MasterCardsUI::moveCard(CardUIPtr& card, bool toHand) //move a card to the 
     {
         handUI.addCard(card,true);
         boardUI.removeCard(card);
-        GameState::getGameState()->addCard(card->getCard(),HAND);
+        GameState::getGameState()->addCard(static_cast<PlayerCard*>(card->getCard()),HAND);
 
     }
     else
     {
         handUI.removeCard(card);
         boardUI.addCard(card);
-        GameState::getGameState()->addCard(card->getCard(),BOARD);
+        GameState::getGameState()->addCard(static_cast<PlayerCard*>(card->getCard()),BOARD);
     }
 }
 

@@ -5,7 +5,7 @@
 
 //for cards you'll encounter in the deck
 
-typedef std::vector<CardPtr> CardRewards;
+typedef std::vector<PlayerCardPtr> CardRewards;
 
 /*template<typename It>
 std::vector<Card const*> minCardsNeeded(const It& start, const It& end, ResourceStats& stats, ResourceStats& target)
@@ -98,6 +98,24 @@ public:
 
 typedef std::function<void()> Consequence; //a function that is run after a choice is made
 
+struct ChoiceResult //represents a result of picking a choice
+{
+    std::string label = ""; //the text to render, describing the choice
+    Consequence result; //what to run
+};
+
+class GenericChoice : public Choice
+{
+    ResourceStats give;
+    ChoiceResult result;
+public:
+    GenericChoice(const ResourceStats& give, ChoiceResult result_);
+    bool isValid();
+    void choose(); //what to do when selected
+    ResourceStats getOffer();
+    std::string getMessage();
+    void render(const glm::vec4& space);
+};
 
 class Trade : public Choice
 {
@@ -129,18 +147,23 @@ public:
 
 //literally only shared_ptr because unique_ptrs can't be copied and are annoying to work with since push_back copies
 typedef std::vector<std::shared_ptr<Choice>> Choices;
-//deck cards
-class EnemyCard : public Card
+
+struct ChoicesBody : public CardBody
 {
     Choices choices;
+    void renderCardText(const glm::vec4& pos, float angle, int z) const;
+};
+//deck cards
+ class EnemyCard : public Card
+{
 public:
     static constexpr int maxChoices = 3; //max number of choices including the attack
     template<typename It>
-    EnemyCard(std::string name, std::string spritePath,  It first, It last) : Card(name,spritePath,"") //pass start and end iterators of a container containing Choice*
+    EnemyCard(std::string name, std::string spritePath,  It first, It last) : Card(name,spritePath,*(new ChoicesBody())) //pass start and end iterators of a container containing Choice*
     {
         for (auto it = first; it != last; ++it)
         {
-            choices.emplace_back(*it);
+            static_cast<ChoicesBody*>(body.get())->choices.emplace_back(*it);
         }
     }
     EnemyCard(std::string name, std::string spritePath, std::initializer_list<Choice*> choices_);

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1734589784 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
+1735078753 source:c:\users\leoou\onedrive\desktop\projects\cards\main.cpp
 	<iostream>
 	<time.h>
 	<SDL.h>
@@ -897,7 +897,7 @@
 	<unordered_set>
 	"SDL.h"
 
-1728360663 c:\users\leoou\onedrive\desktop\resources\vanilla.h
+1735091484 c:\users\leoou\onedrive\desktop\resources\vanilla.h
 	<iostream>
 	<tuple>
 	<math.h>
@@ -935,26 +935,27 @@
 	<iostream>
 	<unordered_map>
 
-1734726722 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
+1735090667 c:\users\leoou\onedrive\desktop\projects\cards\headers\deck.h
 	<list>
 	"render.h"
 
-1734726520 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
+1735080931 source:c:\users\leoou\onedrive\desktop\projects\cards\src\deck.cpp
 	<filesystem>
 	"../headers/deck.h"
 	"../headers/UI.h"
 	"../headers/card_text.h"
 	"../headers/loader.h"
 
-1734163439 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
+1735096214 c:\users\leoou\onedrive\desktop\projects\cards\headers\ui.h
 	"sequencer.h"
 	"geometry.h"
 	"deck.h"
 	"card_text.h"
 	"enemyCards.h"
 	"gamestate.h"
+	"effects.h"
 
-1734883860 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
+1735091210 source:c:\users\leoou\onedrive\desktop\projects\cards\src\ui.cpp
 	<cmath>
 	"sequencer.h"
 	"FreeTypeHelper.h"
@@ -978,11 +979,11 @@
 	"FreeTypeHelper.h"
 	"deck.h"
 
-1727309454 c:\users\leoou\onedrive\desktop\projects\cards\headers\loader.h
+1735015851 c:\users\leoou\onedrive\desktop\projects\cards\headers\loader.h
 	<fstream>
 	"deck.h"
 
-1734726475 source:c:\users\leoou\onedrive\desktop\projects\cards\src\loader.cpp
+1735081493 source:c:\users\leoou\onedrive\desktop\projects\cards\src\loader.cpp
 	"../headers/loader.h"
 	"../libraries/json.hpp"
 	"../headers/card_text.h"
@@ -1183,21 +1184,21 @@
 	<any>
 	<string_view>
 
-1734884287 source:c:\users\leoou\onedrive\desktop\projects\cards\src\enemycards.cpp
+1735080831 source:c:\users\leoou\onedrive\desktop\projects\cards\src\enemycards.cpp
 	"vanilla.h"
 	"../headers/enemyCards.h"
 	"../headers/gamestate.h"
 	"../headers/UI.h"
 	"../headers/loader.h"
 
-1734736947 c:\users\leoou\onedrive\desktop\projects\cards\headers\enemycards.h
+1735080808 c:\users\leoou\onedrive\desktop\projects\cards\headers\enemycards.h
 	"deck.h"
 
-1734580926 source:c:\users\leoou\onedrive\desktop\projects\cards\src\gamestate.cpp
+1735081937 source:c:\users\leoou\onedrive\desktop\projects\cards\src\gamestate.cpp
 	"../headers/gamestate.h"
 	"../headers/UI.h"
 
-1734580745 c:\users\leoou\onedrive\desktop\projects\cards\headers\gamestate.h
+1735078946 c:\users\leoou\onedrive\desktop\projects\cards\headers\gamestate.h
 	"deck.h"
 	"player.h"
 	"enemyCards.h"
@@ -1208,6 +1209,19 @@
 
 1733611891 source:c:\users\leoou\onedrive\desktop\projects\cards\src\player.cpp
 	"../headers/player.h"
+	"../headers/gamestate.h"
+	"../headers/UI.h"
+
+1735015991 c:\users\leoou\onedrive\desktop\projects\cards\headers\effects.h
+	"render.h"
+	"FreeTypeHelper.h"
+	"sequencer.h"
+	"deck.h"
+	"enemyCards.h"
+
+1735258764 source:c:\users\leoou\onedrive\desktop\projects\cards\src\effects.cpp
+	"resourcesMaster.h"
+	"../headers/effects.h"
 	"../headers/gamestate.h"
 	"../headers/UI.h"
 

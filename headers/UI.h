@@ -8,6 +8,7 @@
 #include "card_text.h"
 #include "enemyCards.h"
 #include "gamestate.h"
+#include "effects.h"
 
 struct GameUI
 {
@@ -23,6 +24,14 @@ struct GameUI
     static constexpr int cardHoverZ = backgroundZ+2; //z where cardui that gets hovered over gets rendered at
     static constexpr int effectsZ = backgroundZ + 3; //z for any visual effects, such as taking damage
 };
+
+
+//not sure what the actual name is, but basically does a square root interpolation.
+template<typename T>
+T squerp(T a1, T a2, float t, bool clamp = true, float rate = 2)
+{
+    return a1 + (a2 - a1)*pow(clamp ? std::min(std::max(t,0.0f),1.0f) : t,1/rate);
+}
 
 //orientation of a cardui
 struct CardUIOrient
@@ -47,13 +56,6 @@ class CardUI
     CardWeakPtr card;
     bool inHand = false;
     void onHover();
-protected:
-    glm::vec4 getCardTextRect(const glm::vec4& pos);
-
-    //renders text, may be different from cards in hand vs enemy cards
-    //I should probably make this for each aspect of the card rendering (sprite, name, etc) but I'm gonna do that as time comes
-    //if it's not necessary I'm not gonna bother making more functions
-    virtual void renderCardText(const glm::vec4& pos, float angle, int z);
 public:
     static constexpr glm::vec2 CARD_DIMENS = {120,168};
     static std::unique_ptr<CardTextFont> cardTextFont;
@@ -62,24 +64,36 @@ public:
 
     CardUI(const CardPtr& card_,const CardUIOrient& orient_);
 
-    Card* getCard() const;
+    BaseCard* getCard() const;
     CardWeakPtr& getCardPtr();
     glm::vec4 getRect();
     float getAngle();
     int getZ();
     bool getInHand();
+    CardUIOrient getOrient();
 
     void setInHand(bool val);
     void setRect(const glm::vec4& rect);
     void setAngle(float angle);
     void setOrient(const CardUIOrient&);
 
-    void render();
-    virtual void render(const CardUIOrient&);
+    virtual void render();
 
     //handles input
     //return true if input was handled, false if nothing to do
     virtual bool handleInput();
+};
+
+//class for rendering shit
+class CardRenderer
+{
+public:
+    static glm::vec4 getCardTextRect(const glm::vec4& pos);
+
+    static glm::vec4 getChoiceRect(const glm::vec4& fullCardRect, int index);
+
+    //generic rendering function, can be used to render a card without actually making a card UI
+    static void render(const BaseCard&, const CardUIOrient&);
 };
 
 typedef std::shared_ptr<CardUI> CardUIPtr;
@@ -120,12 +134,13 @@ public:
 class EnemyCardUI : public CardUI
 {
 protected:
+    std::shared_ptr<EnemyCard> ptr;
     glm::vec4 getChoiceRect(const glm::vec4& fullCardRect, int index);
-    virtual void renderCardText(const glm::vec4& pos, float angle, int z);
 public:
     EnemyCardUI(const std::shared_ptr<EnemyCard>& card_);
     bool handleInput();
-    void render(const CardUIOrient& o);
+
+    void render();
 };
 
 //renders the enemy cards and rewards
@@ -139,37 +154,6 @@ public:
     void update();
 private:
     std::shared_ptr<EnemyCardUI> currentEnemy;
-};
-
-//renders a card that can be picked as a reward
-class RewardCardUI : public CardUI
-{
-    //void onClick();
-public:
-    virtual bool handleInput();
-};
-
-
-//handles visual effects
-class EffectsUI
-{
-    typedef std::unique_ptr<BasicRenderPipeline> EffectsPipeline;
-    //a shader for effects
-    //rn it's basically just a glorified PolyRenderer that follows z sorting
-    EffectsPipeline effectsProgram;
-
-    //used for rendering a bleeding card
-    EffectsPipeline bleedingCorpse;
-    std::unique_ptr<Sprite> bloodSplatter;
-    std::unique_ptr<Font> EffectsUIFont;
-
-    Sequencer* floatingText(std::string text, const glm::vec3& color, const glm::vec2& point, Font& font) const; //renders some floating text
-public:
-    EffectsUI();
-    Sequencer* killAMfer() const;
-    Sequencer* takeDamage() const;
-    Sequencer* addHunger(int amount) const;
-    Sequencer* die() const;
 };
 
 class MasterCardsUI
@@ -214,7 +198,7 @@ public:
 
     //REFACTOR: I'm not sure if functions that involve the UIs should be in MasterCardsUI or their respective UIs (HandUI for addCardToHand, for example).
     //For now I'm doing it here because it allows me to add/remove the card to/from MasterCardsUI as well as the respective UI
-    CardUIPtr addCardToHand(Card* card,const CardUIOrient& rect); //create a card and add it to hand. Origin rect is an animation
+    CardUIPtr addCardToHand(PlayerCard* card,const CardUIOrient& rect); //create a card and add it to hand. Origin rect is an animation
     void clearBoard(); //clear all cards from teh board, removing them completely from teh game.
     void choseChoice(Choice& trade);
     void killEnemy(Attack& attack); //trigger an attack and kill an enemy. currently unused

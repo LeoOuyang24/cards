@@ -13,10 +13,28 @@
 #include "headers/loader.h"
 #include "headers/gamestate.h"
 
+struct A
+{
+virtual void func() = 0;
+};
 
+template<typename T>
+struct B : public A
+{
+  void func()
+{
+  std::cout << "ASDF\n";
+}
+};
+
+struct C : public B<int>
+{
+
+};
 
 int main(int args, char* argsc[])
 {
+    C* c  = new C();
     //delete ptr;
     const int screenWidth = 900;
     const int screenHeight = 900;

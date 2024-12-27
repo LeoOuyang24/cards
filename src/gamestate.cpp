@@ -2,9 +2,9 @@
 #include "../headers/UI.h"
 
 
-void BoardState::addCard(const CardWeakPtr& card)
+void BoardState::addCard(const PlayerWeakPtr& card)
 {
-    if (Card* ptr = card.lock().get())
+    if (PlayerCard* ptr = card.lock().get())
     {
         HashCardPtr weakptr(card);
         if (cards.insert(weakptr).second) //if the card was actually inserted (it didn't exist beforehand), update resources
@@ -14,9 +14,9 @@ void BoardState::addCard(const CardWeakPtr& card)
     }
 }
 
-void BoardState::removeCard(const CardWeakPtr& card)
+void BoardState::removeCard(const PlayerWeakPtr& card)
 {
-    if (Card* ptr = card.lock().get())
+    if (PlayerCard* ptr = card.lock().get())
     {
         HashCardPtr weakptr(card);
         if (cards.erase(weakptr) == 1) //erase the card. If it actually was removed (it was in the set) also update our board resources
@@ -37,12 +37,12 @@ ResourceStats BoardState::getResources() const
     return curResources;
 }
 
-void HandState::addCard(const CardWeakPtr& card)
+void HandState::addCard(const PlayerWeakPtr& card)
 {
     hand.push_back(card);
 }
 
-void HandState::removeCard(const CardWeakPtr& card)
+void HandState::removeCard(const PlayerWeakPtr& card)
 {
     for (auto it = hand.begin(); it != hand.end(); ++it)
     {
@@ -121,11 +121,11 @@ void GameState::init()
     curState.reset(new GameState());
 }
 
-const CardPtr& GameState::addCard(Card* card, CardSpots spots )
+const PlayerCardPtr& GameState::addCard(PlayerCard* card, CardSpots spots )
 {
     if (cards.find(card) == cards.end()) //card is new, add it
     {
-        cards[card] = {CardPtr(card),spots};
+        cards[card] = {PlayerCardPtr(card),spots};
         if (spots != NOWHERE)
         {
             states[spots]->addCard(cards[card].first);
@@ -151,11 +151,11 @@ const CardPtr& GameState::addCard(Card* card, CardSpots spots )
 
 }
 
-const CardPtr& GameState::getCard(Card* card)
+const PlayerCardPtr& GameState::getCard(PlayerCard* card)
 {
     if (cards.find(card) == cards.end())
     {
-        return CardPtr();
+        return PlayerCardPtr();
     }
     return cards[card].first;
 }
@@ -170,7 +170,7 @@ const PlayerState& GameState::getPlayerState() const
     return player;
 }
 
-CardSpots GameState::getCardSpot(Card* card)
+CardSpots GameState::getCardSpot(PlayerCard* card)
 {
     if (cards.find(card) == cards.end())
     {
@@ -179,7 +179,7 @@ CardSpots GameState::getCardSpot(Card* card)
     return cards[card].second;
 }
 
-void GameState::removeCard(Card* card)
+void GameState::removeCard(PlayerCard* card)
 {
     if (cards.find(card) != cards.end())
     {
@@ -234,6 +234,7 @@ void GameState::addEnemyCardToDeck(EnemyCard* card)
 {
     if (card)
     {
+        SequenceManager::request(*MasterCardsUI::getUI()->effectsUI.shuffleCard(*card));
         EnemyPtr ptr(card);
         enemy.addCardToDeck(std::move(ptr));
     }

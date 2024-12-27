@@ -34,6 +34,7 @@ ResourceStats loadStats(const json& data)
     return stats;
 }
 
+PlayerCard* loadPlayerCard(const json& data);
 
 Choice* loadChoice(const json& data)
 {
@@ -50,14 +51,14 @@ Choice* loadChoice(const json& data)
         {
             if (data["get"].type() == json::value_t::string) //only a single entry in rewards
             {
-                rewards.push_back(std::shared_ptr<Card>(loadCard(data["get"])));
+                rewards.push_back(std::shared_ptr<PlayerCard>(static_cast<PlayerCard*>(loadCard(loadJsonField(data,"get",std::string(""))))));
             }
             else if (data["get"].type() == json::value_t::array)
             {
                 std::vector<std::string> unloaded = data["get"];
                 for (auto card : unloaded) //load each reward
                 {
-                    rewards.push_back(std::shared_ptr<Card>(loadCard(card)));
+                    rewards.push_back(std::shared_ptr<PlayerCard>(static_cast<PlayerCard*>(loadCard(card))));
                 }
             }
         }
@@ -88,21 +89,16 @@ EnemyCard* loadEnemyCard(const json& data)
     return enemy;
 }
 
-Card* loadPlayerCard(const json& data)
+PlayerCard* loadPlayerCard(const json& data)
 {
-    Card* result = nullptr;
-     if (data.find("text") != data.end())
-    {
-        std::string text = data["text"];
-        result = new Card(data["name"], "./sprites/cardfaces/" +loadJsonField(data,"sprite",std::string("")) + ".png",text);
-    }
-    else if (data.find("stats") != data.end())
+    PlayerCard* result = nullptr;
+    if (data.find("stats") != data.end())
     {
         ResourceStats stats;
         stats.setValue(Resource::food.name,(data["stats"].find("food") != data["stats"].end()) ? (int)data["stats"]["food"] : 0);
         stats.setValue(Resource::coins.name,(data["stats"].find("coins") != data["stats"].end()) ? (int)data["stats"]["coins"] : 0);
         stats.setValue(Resource::damage.name,(data["stats"].find("damage") != data["stats"].end()) ? (int)data["stats"]["damage"] : 0);
-        result = new Card(data["name"],"./sprites/cardfaces/" + std::string(data["sprite"]) + ".png",stats);
+        result = new PlayerCard(data["name"],"./sprites/cardfaces/" + std::string(data["sprite"]) + ".png",stats);
 
     }
     else
@@ -112,7 +108,7 @@ Card* loadPlayerCard(const json& data)
     return result;
 }
 
-Card* loadCard(std::string jason)
+BaseCard* loadCard(std::string jason)
 {
         if (jason.substr(jason.size() - 5, 5) != ".json") //check if ".json" is at the end
         {
@@ -133,7 +129,8 @@ Card* loadCard(std::string jason)
             }
         }
         json data = json::parse(f);
-        Card* result = nullptr;
+        BaseCard* result = nullptr;
+
         if (loadJsonField(data,"isEnemy",false)) //if is an enemy (the isEnemy field is provided AND is set to true)
         {
             result = loadEnemyCard(data);
@@ -147,15 +144,20 @@ Card* loadCard(std::string jason)
         return result;
 }
 
-std::vector<Card*> loadHand()
+BaseCard* loadCard(const CardInfo& info)
+{
+    return new PlayerCard(info.name,info.spritePath,info.stats);
+}
+
+std::vector<PlayerCard*> loadHand()
 {
     std::string folderPath = "./card_jsons/cards/";
 
-    std::vector<Card*> hand;
+    std::vector<PlayerCard*> hand;
     for (const auto & entry : std::filesystem::directory_iterator(folderPath))
         {
-            Card* card = loadCard(entry.path().string());
-            hand.push_back(card);
+            BaseCard* card = loadCard(entry.path().string());
+            hand.push_back(static_cast<PlayerCard*>(card));
 
         }
     return hand;

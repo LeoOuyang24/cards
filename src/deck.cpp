@@ -9,8 +9,7 @@ const Resource Resource::coins = {0,"coins",CardTextFont::coinChar};
 const Resource Resource::damage = {0,"damage",CardTextFont::damageChar};
 const Resource Resource::food = {0,"food",CardTextFont::foodChar};
 
-
-Card::Card(std::string name_,std::string spritePath, std::string text_) : text(text_), name(name_)
+BaseCard::BaseCard(std::string name_,std::string spritePath) : name(name_)
 {
     if (spritePath.size() == 0)
     {
@@ -30,29 +29,36 @@ Card::Card(std::string name_,std::string spritePath, std::string text_) : text(t
     sprite.reset(new Sprite(spritePath));
 }
 
-Card::Card(std::string name_, std::string spritePath, const ResourceStats& stats_) :  Card(name_,spritePath,CardTextFont::getCardResourceString(stats_))
-{
-    stats = stats_;
-}
 
-Sprite* Card::getSprite() const
+Sprite* BaseCard::getSprite() const
 {
     return sprite.get();
 }
 
-std::string Card::getName() const
+std::string BaseCard::getName() const
 {
     return name;
 }
 
-std::string Card::getText() const
+void ResourceBody::renderCardText(const glm::vec4& pos, float angle, int z) const
 {
-    return text;
+    glm::vec2 center = {pos.x + pos.z/2, pos.y + pos.a/2};
+    glm::vec4 textRect = rotateRect(CardRenderer::getCardTextRect(pos),center,angle); //rect where we render card text
+
+    CardUI::cardTextFont->requestWrite({CardTextFont::getCardResourceString(stats,false),
+                                textRect,
+                                -1.f,{1,1,1,1},angle,z,CENTER,VERTCENTER},*CardUI::cardTextShader);
 }
 
-ResourceStats Card::getStats() const
+PlayerCard::PlayerCard(std::string name_, std::string spritePath, const ResourceStats& stats_) :  Card(name_,spritePath,*(new ResourceBody{stats_}))
 {
-    return stats;
+
+}
+
+
+ResourceStats PlayerCard::getStats() const
+{
+    return static_cast<ResourceBody*>(body.get())->stats;
 }
 
 

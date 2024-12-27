@@ -150,6 +150,7 @@ struct ResourceStats
                 t = (resource.value == a.getValue(resource.name));
                 return t;
                 });
+        return t;
     }
     bool operator >= (const ResourceStats& a)
     {
@@ -172,32 +173,83 @@ struct ResourceStats
 
 };
 
-class Card
+//represents the body of the card
+//allows us to abstract away rendering card bodies
+//while still standardizing rendering the rest of the card with CardRenderer
+//at the same time, we also have a place to put our specialized cardbody rendering functions that is not in Card and its descendants
+//since Card is supposed to hold data.
+struct CardBody
+{
+    //render the body
+    virtual void renderCardText(const glm::vec4& pos, float angle, int z) const = 0;
+};
+
+class BaseCard
 {
     std::shared_ptr<Sprite> sprite;
-    std::string text = "";
     std::string name = "";
-
-    ResourceStats stats;
+protected:
+    BaseCard(std::string name, std::string spritePath);
 public:
-    //create the card
-    //if no sprite is given, get a random one
-    Card(std::string name, std::string spritePath = "", std::string text_ = "Deal \x80 Damage");
-    Card(std::string name, std::string spritePath, const ResourceStats& stats);
     Sprite* getSprite() const;
     std::string getText() const;
     std::string getName() const;
+    virtual void renderCardText(const glm::vec4& pos, float angle, int z) const = 0;
+};
+
+class Card : public BaseCard
+{
+protected:
+    std::unique_ptr<CardBody> body;
+public:
+    Card(std::string name, std::string spritePath,CardBody& body_) : BaseCard(name,spritePath), body(&body_)
+    {
+    }
+
+
+    void renderCardText(const glm::vec4& pos, float angle, int z) const
+    {
+        if (CardBody* b = body.get())
+        {
+            b->renderCardText(pos,angle,z);
+        }
+    }
+
+};
+
+// a card body that has stats
+//in the future, also has a function that is run when played.
+struct ResourceBody : public CardBody
+{
+    ResourceStats stats;
+    ResourceBody(const ResourceStats& stats_) : stats(stats_)
+    {
+
+    }
+
+    void renderCardText(const glm::vec4& pos, float angle, int z) const;
+};
+
+class PlayerCard : public Card
+{
+
+public:
+    PlayerCard(std::string name_, std::string spritePath, const ResourceStats& stats_);
     ResourceStats getStats() const;
 };
 
 //data structure that represents a deck
 //top-most card is at the end of the vector
 //this makes popping it a lot more efficient
-typedef std::shared_ptr<Card> CardPtr;
-typedef std::weak_ptr<Card> CardWeakPtr;
+typedef std::shared_ptr<BaseCard> CardPtr;
+
+typedef std::shared_ptr<PlayerCard>PlayerCardPtr;
+typedef std::weak_ptr<BaseCard> CardWeakPtr;
+
+typedef std::weak_ptr<PlayerCard> PlayerWeakPtr;
 
 
-typedef std::list<CardWeakPtr> HandType;
+typedef std::list<PlayerWeakPtr> HandType;
 
 /*class Hand
 {

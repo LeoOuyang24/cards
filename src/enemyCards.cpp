@@ -56,6 +56,48 @@ std::string HurtChoice::getMessage()
     return "take " + std::to_string(damage) + " damage!";
 }
 
+GenericChoice::GenericChoice(const ResourceStats& give_, ChoiceResult result_) : give(give_), result(result_)
+{
+
+}
+
+bool GenericChoice::isValid()
+{
+    return getOffer() <= (GameState::getGameState()->getTracker<BoardState>())->getResources();
+}
+
+void GenericChoice::choose()
+{
+    result.result();
+}
+
+ResourceStats GenericChoice::getOffer()
+{
+    return give;
+}
+
+std::string GenericChoice::getMessage()
+{
+    return CardTextFont::getCardResourceString(give,true) + " -> " + result.label;
+}
+
+void GenericChoice::render(const glm::vec4& space)
+{
+    CardUI::cardTextFont->requestWrite({CardTextFont::getCardResourceString(give,false),
+                       glm::vec4(space.x,space.y,space.z/3,space.a),
+                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                       },*ViewPort::basicProgram);
+     CardUI::cardTextFont->requestWrite({"->",
+                       glm::vec4(space.x + space.z/3,space.y,space.z/3,space.a),
+                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                       },*ViewPort::basicProgram);
+
+    CardUI::cardTextFont->requestWrite({result.label,
+                        glm::vec4(space.x + space.z/3*2, space.y, space.z/3, space.a),
+                        -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                        }, *ViewPort::basicProgram);
+}
+
 Trade::Trade(const ResourceStats& give_, const CardRewards& get_) : give(give_), get(get_)
 {
 
@@ -109,7 +151,6 @@ void Trade::render(const glm::vec4& space)
     {
         getString += CardTextFont::getCardResourceString(get[i]->getStats(),false);
     }
-    PolyRender::requestRect(glm::vec4(space.x + space.z/3*2, space.y, space.z/3, space.a),{1,0,0,1},false,0,3);
     CardUI::cardTextFont->requestWrite({getString,
                         glm::vec4(space.x + space.z/3*2, space.y, space.z/3, space.a),
                         -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
@@ -132,6 +173,18 @@ void Attack::inflictConsequence()
     consequence();
 }
 
+void ChoicesBody::renderCardText(const glm::vec4& rect, float angle, int z) const
+{
+    glm::vec2 mousePos = pairtoVec(MouseManager::getMousePos());
+    for (int i = 0; i < choices.size(); i++)
+    {
+        glm::vec4 choiceRect = CardRenderer::getChoiceRect(rect,i);
+
+        choices.at(i)->render(choiceRect);
+
+    }
+}
+
 EnemyCard::EnemyCard(std::string name, std::string spritePath, std::initializer_list<Choice*> choices_) : EnemyCard(name,spritePath,choices_.begin(),choices_.end())
 {
 
@@ -139,15 +192,13 @@ EnemyCard::EnemyCard(std::string name, std::string spritePath, std::initializer_
 
 const Choices& EnemyCard::getChoices() const
 {
-    return choices;
+    return static_cast<ChoicesBody*>(body.get())->choices;
 }
 
 Deck::Deck(Sprite* cardBack_) : cardBack(cardBack_)
 {
     for (int i = 0; i < 2; i++)
     {
-        Card* card = loadCard("stale_potatoes");
-        CardPtr ptr(card);
         /*EnemyCard* enemy = new EnemyCard("Grandma","sprites/cardfaces/grandma.png",{(new Trade({0,2,2},{ptr})),
                                         (new Attack(3,{ptr},[](){
                                         GameState::getGameState()->addEnemyCardToDeck(new EnemyCard("Guard","sprites/cardfaces/guard.png",

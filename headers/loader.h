@@ -7,9 +7,17 @@
 
 #include "deck.h"
 
-Card* loadCard(std::string json);
+struct CardInfo //bare info needed to load a card
+{
+    std::string name;
+    std::string spritePath;
+    ResourceStats stats;
+};
 
-std::vector<Card*> loadHand();
+BaseCard* loadCard(std::string json);
+BaseCard* loadCard(const CardInfo& info);
+
+std::vector<PlayerCard*> loadHand();
 
 
 #endif // LOADER_H_INCLUDED

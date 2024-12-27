@@ -11,11 +11,11 @@
 class HashCardPtr
 {
     size_t brown; //the hash (it's a hashbrown)
-    CardWeakPtr ptr;
+    PlayerWeakPtr ptr;
 public:
     //this article says that you shouldn't make these from weak pointers https://stackoverflow.com/a/70132547/6947131
     //I don't really get why not, but whatever
-    HashCardPtr(const CardWeakPtr& ptr_) : brown(std::hash<Card*>{}(ptr_.lock().get())), ptr(ptr_)
+    HashCardPtr(const PlayerWeakPtr& ptr_) : brown(std::hash<PlayerCard*>{}(ptr_.lock().get())), ptr(ptr_)
     {
 
     }
@@ -27,7 +27,7 @@ public:
     {
         return brown;
     }
-    Card* get()
+    PlayerCard* get()
     {
         return ptr.lock().get();
     }
@@ -46,8 +46,8 @@ typedef std::unordered_set<HashCardPtr,HasherIHardlyKnowHer> CardSet;
 class StateTracker
 {
 public:
-    virtual void addCard(const CardWeakPtr& card) = 0; //add a non-owning pointer to a card
-    virtual void removeCard(const CardWeakPtr& card) = 0;
+    virtual void addCard(const PlayerWeakPtr& card) = 0; //add a non-owning pointer to a card
+    virtual void removeCard(const PlayerWeakPtr& card) = 0;
     virtual void clear() = 0; //remove all cards
 };
 
@@ -57,8 +57,8 @@ class BoardState : public StateTracker
     ResourceStats curResources;
     CardSet cards;
 public:
-    void addCard(const CardWeakPtr& card);
-    void removeCard(const CardWeakPtr& card);
+    void addCard(const PlayerWeakPtr& card);
+    void removeCard(const PlayerWeakPtr& card);
     void clear();
     ResourceStats getResources() const;
 };
@@ -68,8 +68,8 @@ class HandState : public StateTracker
 {
     HandType hand;
 public:
-    void addCard(const CardWeakPtr& card);
-    void removeCard(const CardWeakPtr& card);
+    void addCard(const PlayerWeakPtr& card);
+    void removeCard(const PlayerWeakPtr& card);
     void clear();
     const HandType& getHand() const;
 };
@@ -107,7 +107,7 @@ class GameState
         states[BOARD] = GlobalMount<BoardState>::getSharedPtr();
         //states[]
     }
-    std::unordered_map<Card*,std::pair<CardPtr,CardSpots>> cards; //master list of player cards and their locations
+    std::unordered_map<PlayerCard*,std::pair<PlayerCardPtr,CardSpots>> cards; //master list of player cards and their locations
     std::unordered_map<CardSpots,std::shared_ptr<StateTracker>> states;
     static std::unique_ptr<GameState> curState;
 
@@ -117,9 +117,9 @@ public:
     static GameState* getGameState();
     static void init();
     //add a card, potentially moving it from a previous location
-    const CardPtr& addCard(Card* card, CardSpots);
-    const CardPtr& getCard(Card* card);
-    CardSpots getCardSpot(Card* card); //returns NOWHERE if card cannot be found
+    const PlayerCardPtr& addCard(PlayerCard* card, CardSpots);
+    const PlayerCardPtr& getCard(PlayerCard* card);
+    CardSpots getCardSpot(PlayerCard* card); //returns NOWHERE if card cannot be found
     EnemyState& getEnemyState();
     const PlayerState& getPlayerState() const;
     StateTracker const* getTracker(CardSpots spots);
@@ -129,7 +129,7 @@ public:
         return GlobalMount<T>::getPtr();
     }
 
-    void removeCard(Card* card); //kill a card permanently
+    void removeCard(PlayerCard* card); //kill a card permanently
     void clear(CardSpots spot); //remove all cards from a spot. If NOWHERE is passed, ALL cards are removed
     void newTurn();
 
