@@ -31,7 +31,7 @@ glm::vec4 GameUI::getEnemyRect()
 {
     glm::vec2 screenDimen = ViewPort::getScreenDimen();
     glm::vec2 dimen = 2.0f*CardUI::CARD_DIMENS;
-    return glm::vec4(screenDimen.x/2 - dimen.x/2,0.05*screenDimen.y,dimen);
+    return glm::vec4(screenDimen.x/2 - dimen.x/2,0.1*screenDimen.y,dimen);
 }
 
 glm::vec4 GameUI::getRewardsRect()
@@ -229,11 +229,12 @@ CardUIOrient HandUI::getCardUIRect(int index, int handSize)
 {
     //set up a bunch of constants
     glm::vec4 handRect = GameUI::getHandRect();
-    glm::vec2 centerPoint = {handRect.x + handRect.z/2, handRect.y + handRect.a*2};
-    float radius = handRect.z/2;
+    glm::vec2 centerPoint = {handRect.x + handRect.z/2, handRect.y + handRect.a/2};
+    float r1 = handRect.z/2;
+    float r2 = handRect.a/2;
     float angle = -M_PI/2 + M_PI/16*(index-handSize/2);
 
-    //in order to ensure the cards overlap each other correctly, each card has a higher z
+    float radius = ((r1*r2)/sqrt(pow(r2*cos(angle),2) + pow(r1*sin(angle),2)));
     glm::vec4 cardRect = glm::vec4(centerPoint + radius*glm::vec2(cos(angle),sin(angle)),CardUI::CARD_DIMENS);
     float cardAngle = angle + M_PI/2;
 
@@ -441,6 +442,11 @@ void EnemyUI::draw(const std::shared_ptr<EnemyCard>& card)
                              })));
 }
 
+void EnemyUI::clear()
+{
+    currentEnemy.reset();
+}
+
 void EnemyUI::update()
 {
     if (CardUI* ui = currentEnemy.get())
@@ -462,8 +468,14 @@ void MasterCardsUI::init()
 
 void MasterCardsUI::newTurn()
 {
-    GameState::getGameState()->newTurn();
-    enemyUI.draw(GameState::getGameState()->getEnemyState().getEnemy());
+    SequenceManager::await([this](){ return !getLocked();},*(new Sequencer([this](int)
+                    {
+                        GameState::getGameState()->newTurn();
+                        enemyUI.draw(GameState::getGameState()->getEnemyState().getEnemy());
+                        return true;
+                    })));
+
+
 }
 
 MasterCardsUI* MasterCardsUI::getUI()
@@ -486,6 +498,28 @@ void MasterCardsUI::drawCards(std::vector<CardPtr>& drawn)
         drawnUIs.push_back(addCard(drawn[i])); //add card to both masterui and handui
     }
     handUI.drawCards(drawnUIs);
+}
+
+void MasterCardsUI::addEnemyCardToDeck(EnemyCard* card, bool wait)
+{
+    if (card)
+    {
+        GameState::getGameState()->addEnemyCardToDeck(card);
+        Sequencer* s = effectsUI.shuffleCard(*card);
+
+        if (wait)
+        {
+            setLocked(true);
+            s->addUnit([this](int)
+                   {
+                       setLocked(false);
+                       return true;
+                   });
+        }
+
+        SequenceManager::request(*s);
+
+    }
 }
 
 CardUIPtr MasterCardsUI::addCardToHand(PlayerCard* card, const CardUIOrient& origin) //create a card and add it to hand.
@@ -538,13 +572,12 @@ void MasterCardsUI::choseChoice(Choice& choice)
 {
     Sequencer* sequencer = choice.isAttack() ? effectsUI.killAMfer() : new Sequencer();
 
-    sequencer->addUnits([&choice](int runtime){
-                        choice.choose();
-                        return true;
-                       },
+    sequencer->addUnits(
                        [&choice,this](int runtime){
+                        choice.choose(); //should be refactored to be a function in gamestate
                         if (choice.isAttack())
                         {
+                            enemyUI.clear();
                             static_cast<Attack&>(choice).inflictConsequence();
                         }
                         newTurn();

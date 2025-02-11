@@ -52,7 +52,10 @@ struct Choice
     {
         return false;
     }
-    virtual void render(const glm::vec4& space);
+    virtual void render(const glm::vec4& space, ZType z);
+    void setReshuffle(bool var);
+protected:
+    bool reshuffle = false; //whether or not to shuffle the enemy card back into the deck after selecting this choice
 };
 
 class TextChoice : public Choice
@@ -106,29 +109,31 @@ struct ChoiceResult //represents a result of picking a choice
 
 class GenericChoice : public Choice
 {
+protected:
     ResourceStats give;
     ChoiceResult result;
 public:
+    static Sprite arrow;
+
     GenericChoice(const ResourceStats& give, ChoiceResult result_);
     bool isValid();
-    void choose(); //what to do when selected
+    virtual void choose(); //what to do when selected
     ResourceStats getOffer();
-    std::string getMessage();
-    void render(const glm::vec4& space);
+    virtual std::string getMessage();
+    virtual void render(const glm::vec4& space, int z);
 };
 
-class Trade : public Choice
+//generic choice that shows the resources you'll receive
+class Trade : public GenericChoice
 {
-    ResourceStats give; //what to give for this trade
     CardRewards get; //what you (the player) receives for this trade
+    std::string getRewardsString(const CardRewards&);
+    void giveRewards(); //what to do when selected
 public:
     Trade(const ResourceStats& give, const CardRewards& get);
-    bool isValid();
-    void choose(); //what to do when selected
-    ResourceStats getOffer();
     CardRewards&& getRewards(); //return r value so you can move it
     std::string getMessage();
-    void render(const glm::vec4& space);
+    //void render(const glm::vec4& space, ZType z);
 
 };
 
@@ -167,6 +172,7 @@ public:
         }
     }
     EnemyCard(std::string name, std::string spritePath, std::initializer_list<Choice*> choices_);
+    EnemyCard(std::string jsonPath);
     const Choices& getChoices() const;
 };
 

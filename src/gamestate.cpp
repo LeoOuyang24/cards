@@ -66,7 +66,10 @@ const HandType& HandState::getHand() const
 
 EnemyState::EnemyState(std::string cardBack) : deck(new Sprite(cardBack))
 {
-    restEvent.reset(new EnemyCard("Time to Rest","sprites/cardfaces/resting.png",{new Trade({0,0,5},{}),new StarveChoice()}));
+    restEvent.reset(new EnemyCard("Time to Rest","sprites/cardfaces/resting.png",{new GenericChoice({0,0,5},
+                                                                                                    {"Restore\nhunger",[]()mutable{
+                                                                                                    GameState::getGameState()->playerChangeHunger(PlayerState::MAX_HUNGER);
+                                                                                                    }}),new StarveChoice()}));
 }
 
 void EnemyState::setEnemy(EnemyCard* card)
@@ -234,7 +237,6 @@ void GameState::addEnemyCardToDeck(EnemyCard* card)
 {
     if (card)
     {
-        SequenceManager::request(*MasterCardsUI::getUI()->effectsUI.shuffleCard(*card));
         EnemyPtr ptr(card);
         enemy.addCardToDeck(std::move(ptr));
     }

@@ -1,0 +1,24 @@
+{
+	"name": "Fruit Tree",
+	"isEnemy": true,
+	"sprite":"tree",
+	"choices":[
+		{
+			"type": "trade",
+			"stats":{
+				"coins": 0,
+				"damage": 0,
+				"food": 0
+				},
+			"get": "apple"
+		},
+		{
+			"type": "trade",
+			"reshuffle": true,
+			"stats":{
+				"damage":5
+				},
+			"get": ["apple","apple"]
+		}
+	]
+}

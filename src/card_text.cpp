@@ -14,7 +14,6 @@ CardTextChar::CardTextChar(char c, FT_Face& face) : Character(c,face)
 CardTextChar::CardTextChar(char c, std::string spritePath) : Character(c)
 {
     Sprite::load(spritePath);
-
      size =     glm::ivec2(width/5, height/5);
     bearing =  {5,size.y};
     advance = 2000;
@@ -45,6 +44,6 @@ CardTextFont::CardTextFont() : Font()
     characters[coinChar] = std::unique_ptr<Character>(new CardTextChar(coinChar,"sprites/icons/coin.png"));
     characters[damageChar] = std::unique_ptr<Character>(new CardTextChar(damageChar,"sprites/icons/damage.png"));
     characters[foodChar] = std::unique_ptr<Character>(new CardTextChar(damageChar,"sprites/icons/food.png"));
-
+    characters[reshuffleChar] = std::unique_ptr<Character>(new CardTextChar(reshuffleChar,"sprites/icons/reshuffle.png"));
 
 }

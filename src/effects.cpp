@@ -4,6 +4,8 @@
 #include "../headers/gamestate.h"
 #include "../headers/UI.h"
 
+const glm::vec4 EffectsUI::bloodColor = {0.3,0,0,1};
+
 Sequencer* EffectsUI::floatingText(std::string text, const glm::vec3& color, const glm::vec2& point, Font& font) const
 {
     return new Sequencer([&font,color,text,point](int time){

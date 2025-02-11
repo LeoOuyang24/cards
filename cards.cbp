@@ -60,6 +60,7 @@
 		<Unit filename="headers/UI.h" />
 		<Unit filename="headers/card_text.h" />
 		<Unit filename="headers/deck.h" />
+		<Unit filename="headers/effects.h" />
 		<Unit filename="headers/enemyCards.h" />
 		<Unit filename="headers/gamestate.h" />
 		<Unit filename="headers/loader.h" />
@@ -69,6 +70,7 @@
 		<Unit filename="src/UI.cpp" />
 		<Unit filename="src/card_text.cpp" />
 		<Unit filename="src/deck.cpp" />
+		<Unit filename="src/effects.cpp" />
 		<Unit filename="src/enemyCards.cpp" />
 		<Unit filename="src/gamestate.cpp" />
 		<Unit filename="src/loader.cpp" />

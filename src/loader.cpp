@@ -6,6 +6,7 @@ using json = nlohmann::json;
 #include "../headers/card_text.h"
 #include "../headers/enemyCards.h"
 #include "../headers/gamestate.h"
+#include "../headers/UI.h"
 
 typedef std::unordered_map<std::string, json> JSONType; //type of a generic json
 
@@ -62,11 +63,13 @@ Choice* loadChoice(const json& data)
                 }
             }
         }
-        return type == TRADE ? new Trade(resources,rewards) : new Attack(resources.getValue(Resource::damage.name),std::move(rewards),[](){
-                                        GameState::getGameState()->addEnemyCardToDeck(new EnemyCard("Guard","sprites/cardfaces/guard.png",
+        Choice* ch =  (type == TRADE ? new Trade(resources,rewards) : new Attack(resources.getValue(Resource::damage.name),std::move(rewards),[](){
+                                        MasterCardsUI::getUI()->addEnemyCardToDeck(new EnemyCard("Guard","sprites/cardfaces/guard.png",
                                                                                     {new Attack(10,{},{}),new HurtChoice(1)}
-                                                                                                    ));
-                                                    });
+                                                                                                    ),true);
+                                                    }));
+        ch->setReshuffle(loadJsonField(data,"reshuffle",false));
+        return ch;
 
 
     }
@@ -110,7 +113,7 @@ PlayerCard* loadPlayerCard(const json& data)
 
 BaseCard* loadCard(std::string jason)
 {
-        if (jason.substr(jason.size() - 5, 5) != ".json") //check if ".json" is at the end
+        if (jason.size() <5 || jason.substr(jason.size() - 5, 5) != ".json") //check if ".json" is at the end
         {
             jason += ".json";
         }

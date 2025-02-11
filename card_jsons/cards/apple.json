@@ -1,0 +1,9 @@
+{
+	"name": "Fresh Apple",
+	"sprite":"apple",
+	"stats":{
+		"gold": 0,
+		"attack": 0,
+		"food": 3
+	}
+}

@@ -23,6 +23,7 @@ class EffectsUI
 
     Sequencer* floatingText(std::string text, const glm::vec3& color, const glm::vec2& point, Font& font) const; //renders some floating text
 public:
+    static const glm::vec4 bloodColor;
     EffectsUI();
     Sequencer* shuffleCard(EnemyCard& card); //shuffle a card into the deck
     Sequencer* killAMfer() const;

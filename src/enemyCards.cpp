@@ -12,12 +12,17 @@ std::unordered_map<std::string, ChoiceTypes>  Choice::stringToChoice = {
         {"text", ChoiceTypes::TEXT}
     };
 
-void Choice::render(const glm::vec4& space)
+void Choice::render(const glm::vec4& space, ZType z)
 {
     CardUI::cardTextFont->requestWrite({getMessage(),
                        space,
-                       -2.f,{1,1,1,1},0,GameUI::effectsZ-1,CENTER, VERTCENTER
+                       -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                        },*ViewPort::basicProgram);
+}
+
+void Choice::setReshuffle(bool var)
+{
+    reshuffle = var;
 }
 
 TextChoice::TextChoice(std::string message_) : Choice(), message(message_)
@@ -69,6 +74,7 @@ bool GenericChoice::isValid()
 void GenericChoice::choose()
 {
     result.result();
+    MasterCardsUI::getUI()->clearBoard();
 }
 
 ResourceStats GenericChoice::getOffer()
@@ -76,55 +82,58 @@ ResourceStats GenericChoice::getOffer()
     return give;
 }
 
+Sprite GenericChoice::arrow;
+
 std::string GenericChoice::getMessage()
 {
     return CardTextFont::getCardResourceString(give,true) + " -> " + result.label;
 }
 
-void GenericChoice::render(const glm::vec4& space)
+void GenericChoice::render(const glm::vec4& space, ZType z)
 {
     CardUI::cardTextFont->requestWrite({CardTextFont::getCardResourceString(give,false),
                        glm::vec4(space.x,space.y,space.z/3,space.a),
-                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                       -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                        },*ViewPort::basicProgram);
-     CardUI::cardTextFont->requestWrite({"->",
+     /*CardUI::cardTextFont->requestWrite({"->",
                        glm::vec4(space.x + space.z/3,space.y,space.z/3,space.a),
-                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
-                       },*ViewPort::basicProgram);
+                       -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
+                       },*ViewPort::basicProgram);*/
+    SpriteManager::requestSprite({*ViewPort::basicProgram,&arrow}, glm::vec4(space.x + space.z/3,space.y,space.z/3,space.a),z);
 
-    CardUI::cardTextFont->requestWrite({result.label,
+    std::string message = result.label + (reshuffle ? ("\n" + std::string(1,CardTextFont::reshuffleChar)) : "");
+    CardUI::cardTextFont->requestWrite({message,
                         glm::vec4(space.x + space.z/3*2, space.y, space.z/3, space.a),
-                        -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                        -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                         }, *ViewPort::basicProgram);
 }
 
-Trade::Trade(const ResourceStats& give_, const CardRewards& get_) : give(give_), get(get_)
+std::string Trade::getRewardsString(const CardRewards& get)
+{
+    std::string getString = "";
+    for (int i = 0; i < get.size(); i ++)
+    {
+        getString += CardTextFont::getCardResourceString(get[i]->getStats(),false);
+    }
+    return getString;
+}
+
+Trade::Trade(const ResourceStats& give_, const CardRewards& get_) : GenericChoice(give_,{getRewardsString(get_),std::bind(&giveRewards,this)}), get(get_)
 {
 
 }
 
-bool Trade::isValid()
-{
-    return getOffer() <= (GameState::getGameState()->getTracker<BoardState>())->getResources();
-}
 
-void Trade::choose()
+void Trade::giveRewards()
 {
-    Sequencer* sequence = new Sequencer();
     glm::vec4 enemyRect = GameUI::getEnemyRect();
-    glm::vec4 cardRect = GameUI::getHandRect();
-    float totalTime = 250;
+
     for (auto card : get)
     {
         MasterCardsUI::getUI()->addCardToHand(card.get(),{enemyRect});
     }
-    SequenceManager::request(*sequence);
 }
 
-ResourceStats Trade::getOffer()
-{
-    return give;
-}
 
 CardRewards&& Trade::getRewards()
 {
@@ -136,15 +145,15 @@ std::string Trade::getMessage()
     return CardTextFont::getCardResourceString(give,true);
 }
 
-void Trade::render(const glm::vec4& space)
+/*void Trade::render(const glm::vec4& space, ZType z)
 {
     CardUI::cardTextFont->requestWrite({getMessage(),
                        glm::vec4(space.x,space.y,space.z/3,space.a),
-                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                       -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                        },*ViewPort::basicProgram);
      CardUI::cardTextFont->requestWrite({"->",
                        glm::vec4(space.x + space.z/3,space.y,space.z/3,space.a),
-                       -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                       -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                        },*ViewPort::basicProgram);
     std::string getString = "";
     for (int i = 0; i < get.size(); i ++)
@@ -153,9 +162,9 @@ void Trade::render(const glm::vec4& space)
     }
     CardUI::cardTextFont->requestWrite({getString,
                         glm::vec4(space.x + space.z/3*2, space.y, space.z/3, space.a),
-                        -2.f,{1,1,1,1},0,GameUI::cardHoverZ-1,CENTER, VERTCENTER
+                        -2.f,{1,1,1,1},0,z,CENTER, VERTCENTER
                         }, *ViewPort::basicProgram);
-}
+}*/
 
 Attack::Attack(int attack, CardRewards&& get, Consequence&& consequence_) : Trade({0,attack,0},get), consequence(consequence_)
 {
@@ -180,12 +189,16 @@ void ChoicesBody::renderCardText(const glm::vec4& rect, float angle, int z) cons
     {
         glm::vec4 choiceRect = CardRenderer::getChoiceRect(rect,i);
 
-        choices.at(i)->render(choiceRect);
-
+        choices.at(i)->render(choiceRect,z+2); //+2 so the highlight rectangle will not cover it
     }
 }
 
 EnemyCard::EnemyCard(std::string name, std::string spritePath, std::initializer_list<Choice*> choices_) : EnemyCard(name,spritePath,choices_.begin(),choices_.end())
+{
+
+}
+
+EnemyCard::EnemyCard(std::string jsonPath) : EnemyCard(static_cast<EnemyCard&&>(*loadCard(jsonPath)))
 {
 
 }
@@ -205,7 +218,7 @@ Deck::Deck(Sprite* cardBack_) : cardBack(cardBack_)
                                                                                     {new Attack(10,{},{}),new HurtChoice(1)}
                                                                                                     ));
                                                     }))});*/
-        EnemyCard* enemy = static_cast<EnemyCard*>(loadCard("grandma"));
+        EnemyCard* enemy = new EnemyCard("grandma");//static_cast<EnemyCard*>(loadCard("grandma"));
         deck.emplace_back(enemy);
 
     }
@@ -243,6 +256,9 @@ size_t Deck::size() const
 void Deck::addCard(const EnemyPtr& card)
 {
     auto it = deck.begin();
-    std::advance(it, (rand()%deck.size()));
+    if (deck.size() >0)
+    {
+        std::advance(it, (rand()%deck.size()));
+    }
     deck.insert(it,card);
 }

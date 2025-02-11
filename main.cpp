@@ -13,31 +13,11 @@
 #include "headers/loader.h"
 #include "headers/gamestate.h"
 
-struct A
-{
-virtual void func() = 0;
-};
-
-template<typename T>
-struct B : public A
-{
-  void func()
-{
-  std::cout << "ASDF\n";
-}
-};
-
-struct C : public B<int>
-{
-
-};
-
 int main(int args, char* argsc[])
 {
-    C* c  = new C();
     //delete ptr;
-    const int screenWidth = 900;
-    const int screenHeight = 900;
+    const int screenWidth = 1920;
+    const int screenHeight = 1080;
 
     srand(time(NULL));
 
@@ -77,6 +57,7 @@ int main(int args, char* argsc[])
                                                           LoadShaderInfo{"./shaders/cardTextFragment.h",GL_FRAGMENT_SHADER,true}}
                                                           ));
     CardUI::blankCard.init("sprites/cards/card_template.png");
+    GenericChoice::arrow.init("sprites/icons/arrow.png");
 
     auto start = loadHand();
     for (auto card : start)
@@ -123,12 +104,16 @@ int main(int args, char* argsc[])
         MasterCardsUI::getUI()->update();
         MasterCardsUI::getUI()->playerUI.render();
         //FontGlobals::tnr.requestWrite({"game over",glm::vec4(100,100,500,200),1,glm::vec4(1,0,0,1),0,GameUI::effectsZ});
-
+        //PolyRender::requestRect(glm::vec4(100,100,100,100),glm::vec4(1,0,0,1),true,0,5);
+        //PolyRender::requestRect(glm::vec4(100,110,100,100),glm::vec4(0,1,0,1),true,0,4);
         //PolyRender::requestRect(glm::vec4(0,0,screenWidth,screenHeight),glm::vec4(1,0,0,1),true,0,0);
+
         PolyRender::requestRect(handRect,glm::vec4(0,0.7,0,1),false,0,0);
         PolyRender::requestRect(GameUI::getPlayRect(),glm::vec4(1,0,0,1),false,0,0);
-        PolyRender::requestRect(GameUI::getEnemyRect(),glm::vec4(1,1,0,1),false,0,0);
+        PolyRender::requestRect(GameUI::getEnemyRect(),EffectsUI::bloodColor,true,0,0);
         PolyRender::requestRect(GameUI::getDeckRect(),glm::vec4(1,0,1,1),false,0,0);
+
+        //PolyRender::requestRect({handRect.x + handRect.z/2, handRect.y + handRect.a*2,10,10},glm::vec4(1,0,0,1),true,0,0);
 
         //Font::tnr.requestWrite({"HELLO!!!!",{320,320,100,100},{1,0,0,1},0,1});
         //ui.effectsProgram->draw(GL_TRIANGLES,1,glm::vec4(1,0,0,1));

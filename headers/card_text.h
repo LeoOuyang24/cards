@@ -21,6 +21,7 @@ public:
     static constexpr GLchar coinChar = '\x80'; //character to represent coin icons. Any occurences of this character in card text will be replaced by the coin icon
     static constexpr GLchar damageChar = coinChar + 1;
     static constexpr GLchar foodChar = damageChar + 1;
+    static constexpr GLchar reshuffleChar = foodChar + 1;
     //returns the card description for a card with resources
     //oneline = true if we want to print the whole thing on one line
     static std::string getCardResourceString(const ResourceStats& stats, bool oneline = false);

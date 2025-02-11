@@ -148,6 +148,7 @@ class EnemyUI
 {
 public:
     void setEnemyCard(const std::shared_ptr<EnemyCard>& card);
+    void clear();
     const EnemyCardUI& getCurrentEnemy();
 
     void draw(const std::shared_ptr<EnemyCard>& card); //set enemy card and play a drawing animation
@@ -174,8 +175,16 @@ class MasterCardsUI
         enemyUI.setEnemyCard(GameState::getGameState()->getEnemyState().getEnemy());
     }
     static std::unique_ptr<MasterCardsUI> CardsUI;
-
+    bool locked = false; //true if new turn can't happen yet
+    void setLocked(bool b)
+    {
+        locked = b;
+    }
 public:
+    bool getLocked() const
+    {
+        return locked;
+    }
     HandUI handUI;
     BoardUI boardUI;
     EnemyUI enemyUI;
@@ -195,7 +204,7 @@ public:
     void drawCards(std::vector<CardPtr>& cards);
 
     void moveCard(CardUIPtr& card, bool toHand); //move a card to the hand or board
-
+    void addEnemyCardToDeck(EnemyCard* card, bool wait = false); //add a card to the Deck and play the animation. "wait" is true if next turn can not happen until teh animation finishes
     //REFACTOR: I'm not sure if functions that involve the UIs should be in MasterCardsUI or their respective UIs (HandUI for addCardToHand, for example).
     //For now I'm doing it here because it allows me to add/remove the card to/from MasterCardsUI as well as the respective UI
     CardUIPtr addCardToHand(PlayerCard* card,const CardUIOrient& rect); //create a card and add it to hand. Origin rect is an animation
